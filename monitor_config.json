@@ -44,31 +44,78 @@
   "sources": [
     {
       "name": "国家电网招聘平台",
-      "url": "https://zhaopin.sgcc.com.cn"
+      "url": "https://zhaopin.sgcc.com.cn",
+      "official": true
     },
     {
       "name": "国家能源集团招聘平台",
-      "url": "https://zhaopin.chnenergy.com.cn"
+      "url": "https://zhaopin.chnenergy.com.cn",
+      "official": true
     },
     {
       "name": "国聘",
-      "url": "https://www.iguopin.com"
+      "url": "https://www.iguopin.com",
+      "official": true
     },
     {
       "name": "中国公共招聘网",
-      "url": "https://job.mohrss.gov.cn"
+      "url": "https://job.mohrss.gov.cn",
+      "official": true
     },
     {
       "name": "中国移动招聘",
-      "url": "https://job.10086.cn"
+      "url": "https://job.10086.cn",
+      "official": true
     },
     {
       "name": "中国电信招聘",
-      "url": "https://job.chinatelecom.com.cn"
+      "url": "https://job.chinatelecom.com.cn",
+      "official": true
     },
     {
       "name": "中国铁塔招聘",
-      "url": "https://zhaopin.chinatowercom.cn"
+      "url": "https://zhaopin.chinatowercom.cn",
+      "official": true
+    },
+    {
+      "name": "国家电投招聘",
+      "url": "https://zhaopin.spic.com.cn",
+      "official": true
+    },
+    {
+      "name": "中国华能招聘",
+      "url": "https://zhaopin.chng.com.cn",
+      "official": true
+    },
+    {
+      "name": "中国大唐招聘",
+      "url": "https://www.cdtrczp.com",
+      "official": true
+    },
+    {
+      "name": "中国华电招聘",
+      "url": "https://www.chd.com.cn/site/2/1068/index.html",
+      "official": true
+    },
+    {
+      "name": "中国三峡集团招聘",
+      "url": "https://ctg.zhiye.com",
+      "official": true
+    },
+    {
+      "name": "中国电建招聘",
+      "url": "https://zhaopin.powerchina.cn",
+      "official": true
+    },
+    {
+      "name": "中国能建招聘",
+      "url": "https://zhaopin.ceec.net.cn",
+      "official": true
+    },
+    {
+      "name": "中国电科招聘",
+      "url": "https://www.cetc.com.cn/zgdk/334315/334329/index.html",
+      "official": true
     }
   ],
   "search_queries": [

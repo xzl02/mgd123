@@ -997,7 +997,12 @@
             <strong>${escapeHtml(item.title)}</strong>
             <span class="tag ${item.score >= 14 ? "ok" : "warn"}">匹配 ${item.score}</span>
           </div>
-          <div class="muted">${escapeHtml(item.source)} · ${escapeHtml((item.matched_keywords || []).slice(0, 8).join(" / "))}</div>
+          <div>
+            <span class="tag ${item.confidence === "高可信" ? "ok" : item.confidence && item.confidence.includes("官方") ? "warn" : ""}">${escapeHtml(item.confidence || "待核验")}</span>
+            <span class="tag ${item.deadline ? "ok" : "warn"}">截止：${escapeHtml(item.deadline || "未识别")}</span>
+          </div>
+          <div class="muted">${escapeHtml(item.source)} · ${escapeHtml(item.status_note || "")}</div>
+          <div class="muted">${escapeHtml((item.matched_keywords || []).slice(0, 8).join(" / "))}</div>
           <div class="actions">
             <a href="${escapeAttr(item.url)}" target="_blank" rel="noreferrer">打开线索</a>
             <button class="ghost" data-save-cloud="${escapeAttr(item.id)}">加入台账</button>
@@ -1236,11 +1241,11 @@
           id: crypto.randomUUID(),
           title: item.title,
           company: item.source,
-          deadline: "",
+          deadline: item.deadline || "",
           fit: item.score >= 14 ? "高" : "中",
           link: item.url,
           status: "待处理",
-          note: `云端监控匹配：${(item.matched_keywords || []).join(" / ")}`
+          note: `${item.confidence || "待核验"}；${item.status_note || ""}；云端监控匹配：${(item.matched_keywords || []).join(" / ")}`
         });
         saveState();
         toast("已加入公告台账");

@@ -4,16 +4,20 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, asdict
+from datetime import date, datetime
 from email.message import EmailMessage
+from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeout
 import hashlib
 import html
 import json
+import multiprocessing as mp
 import os
 from pathlib import Path
 import re
 import smtplib
 import ssl
 import sys
+import time
 from typing import Iterable
 from urllib.parse import quote_plus, urljoin
 from urllib.request import Request, urlopen
@@ -24,6 +28,7 @@ CONFIG_PATH = ROOT / "monitor_config.json"
 DATA_DIR = ROOT / "mgd123" / "data"
 OUTPUT_PATH = DATA_DIR / "announcements.json"
 STATE_PATH = ROOT / ".monitor_state.json"
+MAX_SECONDS = 70
 
 
 @dataclass
@@ -35,6 +40,9 @@ class Announcement:
     matched_keywords: list[str]
     score: int
     found_at: str
+    deadline: str
+    confidence: str
+    status_note: str
 
 
 def load_json(path: Path, default):
@@ -48,7 +56,7 @@ def write_json(path: Path, data) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def fetch(url: str, timeout: int = 8) -> str:
+def _fetch_direct(url: str, timeout: int) -> str:
     req = Request(
         url,
         headers={
@@ -64,6 +72,30 @@ def fetch(url: str, timeout: int = 8) -> str:
         except UnicodeDecodeError:
             continue
     return raw.decode("utf-8", errors="ignore")
+
+
+def _fetch_worker(url: str, timeout: int, queue: mp.Queue) -> None:
+    try:
+        queue.put(("ok", _fetch_direct(url, timeout)))
+    except Exception as exc:
+        queue.put(("err", repr(exc)))
+
+
+def fetch(url: str, timeout: int = 8) -> str:
+    queue: mp.Queue = mp.Queue()
+    proc = mp.Process(target=_fetch_worker, args=(url, timeout, queue))
+    proc.start()
+    proc.join(timeout + 3)
+    if proc.is_alive():
+        proc.terminate()
+        proc.join(2)
+        raise TimeoutError(f"Timed out fetching {url}")
+    if queue.empty():
+        raise RuntimeError(f"No response while fetching {url}")
+    status, payload = queue.get()
+    if status == "ok":
+        return payload
+    raise RuntimeError(payload)
 
 
 def clean_text(text: str) -> str:
@@ -85,7 +117,75 @@ def extract_links(page: str, base_url: str) -> Iterable[tuple[str, str]]:
         yield label[:160], url
 
 
-def score_item(title: str, url: str, keywords: list[str], high_value_units: list[str]) -> tuple[int, list[str]]:
+def current_year() -> int:
+    return int(os.environ.get("MONITOR_YEAR", str(date.today().year)))
+
+
+def parse_deadline(text: str) -> str:
+    patterns = [
+        r"(?:截止|截至|报名截止|投递截止|简历投递截止|申请截止)[^\d]{0,12}(\d{4})[年\-/\.](\d{1,2})[月\-/\.](\d{1,2})",
+        r"(\d{4})[年\-/\.](\d{1,2})[月\-/\.](\d{1,2})[日号]?[^\n]{0,12}(?:截止|截至)",
+        r"(?:截止|截至|报名截止|投递截止)[^\d]{0,12}(\d{1,2})[月\-/\.](\d{1,2})[日号]?"
+    ]
+    for pattern in patterns:
+        match = re.search(pattern, text)
+        if not match:
+            continue
+        groups = match.groups()
+        try:
+            if len(groups) == 3:
+                year, month, day = map(int, groups)
+            else:
+                year = current_year()
+                month, day = map(int, groups)
+            return date(year, month, day).isoformat()
+        except ValueError:
+            continue
+    return ""
+
+
+def is_deadline_expired(deadline: str) -> bool:
+    if not deadline:
+        return False
+    try:
+        return date.fromisoformat(deadline) < date.today()
+    except ValueError:
+        return False
+
+
+def year_penalty_and_note(text: str) -> tuple[int, str, bool]:
+    years = {int(y) for y in re.findall(r"20\d{2}", text)}
+    if not years:
+        return 0, "未识别年份，需核验", False
+    year = current_year()
+    if any(y >= year for y in years):
+        return 4, f"包含当前或未来年份：{', '.join(map(str, sorted(years)))}", False
+    if any(y == year - 1 for y in years):
+        return 0, f"包含上一年度年份：{', '.join(map(str, sorted(years)))}，需核验是否仍有效", False
+    return -100, f"疑似旧公告年份：{', '.join(map(str, sorted(years)))}", True
+
+
+def source_confidence(source: str, url: str, deadline: str) -> str:
+    official_markers = [
+        "sgcc.com.cn",
+        "chnenergy.com.cn",
+        "10086.cn",
+        "chinatelecom.com.cn",
+        "chinatowercom.cn",
+        "iguopin.com",
+        "job.mohrss.gov.cn",
+        "spic.com.cn"
+    ]
+    if deadline and any(marker in url for marker in official_markers):
+        return "高可信"
+    if any(marker in url for marker in official_markers):
+        return "官方来源待核验"
+    if deadline:
+        return "有截止日期待核验"
+    return "待核验线索"
+
+
+def score_item(title: str, url: str, keywords: list[str], high_value_units: list[str]) -> tuple[int, list[str], str, str, bool]:
     text = f"{title} {url}"
     matched = [kw for kw in keywords if kw in text]
     unit_hits = [unit for unit in high_value_units if unit in text]
@@ -94,7 +194,15 @@ def score_item(title: str, url: str, keywords: list[str], high_value_units: list
         score += 4
     if "招聘" in text or "校园招聘" in text or "高校毕业生" in text:
         score += 4
-    return score, matched + unit_hits
+    year_score, year_note, reject = year_penalty_and_note(text)
+    score += year_score
+    deadline = parse_deadline(text)
+    if deadline:
+        score += 3
+    if is_deadline_expired(deadline):
+        reject = True
+        year_note = f"已过截止日期：{deadline}"
+    return score, matched + unit_hits, deadline, year_note, reject
 
 
 def item_id(title: str, url: str) -> str:
@@ -104,15 +212,19 @@ def item_id(title: str, url: str) -> str:
 def collect_from_source(source: dict, config: dict) -> list[Announcement]:
     url = source["url"]
     try:
-        page = fetch(url)
+        page = fetch(url, timeout=5)
     except Exception as exc:
         print(f"Fetch failed: {url}: {exc}", file=sys.stderr)
         return []
 
     items: list[Announcement] = []
     for title, link in extract_links(page, url):
-        score, matched = score_item(title, link, config["keywords"], config["high_value_units"])
-        if score < 7:
+        score, matched, deadline, note, reject = score_item(title, link, config["keywords"], config["high_value_units"])
+        if source.get("official"):
+            score += 5
+            if note == "未识别年份，需核验":
+                note = "官方入口线索，未识别年份，需打开公告核验"
+        if reject or score < 7:
             continue
         items.append(
             Announcement(
@@ -123,6 +235,9 @@ def collect_from_source(source: dict, config: dict) -> list[Announcement]:
                 matched_keywords=matched[:12],
                 score=score,
                 found_at=os.environ.get("GITHUB_RUN_STARTED_AT", ""),
+                deadline=deadline,
+                confidence=source_confidence(source["name"], link, deadline),
+                status_note=note,
             )
         )
     return items
@@ -131,28 +246,59 @@ def collect_from_source(source: dict, config: dict) -> list[Announcement]:
 def collect_from_search(config: dict) -> list[Announcement]:
     items: list[Announcement] = []
     for query in config["search_queries"][:4]:
-        url = "https://www.bing.com/search?q=" + quote_plus(query)
-        try:
-            page = fetch(url)
-        except Exception as exc:
-            print(f"Search failed: {query}: {exc}", file=sys.stderr)
-            continue
-        for title, link in extract_links(page, url):
-            score, matched = score_item(title, link, config["keywords"], config["high_value_units"])
-            if score < 8:
-                continue
-            items.append(
-                Announcement(
-                    id=item_id(title, link),
-                    title=title,
-                    source=f"Bing: {query}",
-                    url=link,
-                    matched_keywords=matched[:12],
-                    score=score,
-                    found_at=os.environ.get("GITHUB_RUN_STARTED_AT", ""),
-                )
-            )
+        items.extend(collect_from_query(query, config))
     return items
+
+
+def collect_from_query(query: str, config: dict) -> list[Announcement]:
+    url = "https://www.bing.com/search?q=" + quote_plus(query)
+    try:
+        page = fetch(url, timeout=6)
+    except Exception as exc:
+        print(f"Search failed: {query}: {exc}", file=sys.stderr)
+        return []
+
+    items: list[Announcement] = []
+    for title, link in extract_links(page, url):
+        score, matched, deadline, note, reject = score_item(title, link, config["keywords"], config["high_value_units"])
+        if reject or score < 8:
+            continue
+        items.append(
+            Announcement(
+                id=item_id(title, link),
+                title=title,
+                source=f"Bing: {query}",
+                url=link,
+                matched_keywords=matched[:12],
+                score=score,
+                found_at=os.environ.get("GITHUB_RUN_STARTED_AT", ""),
+                deadline=deadline,
+                confidence=source_confidence(f"Bing: {query}", link, deadline),
+                status_note=note,
+            )
+        )
+    return items
+
+
+def collect_parallel(config: dict) -> list[Announcement]:
+    tasks = []
+    collected: list[Announcement] = []
+    with ThreadPoolExecutor(max_workers=8) as executor:
+        for source in config.get("sources", [])[:12]:
+            tasks.append(executor.submit(collect_from_source, source, config))
+        for query in config.get("search_queries", [])[:6]:
+            tasks.append(executor.submit(collect_from_query, query, config))
+        try:
+            for future in as_completed(tasks, timeout=MAX_SECONDS):
+                try:
+                    collected.extend(future.result())
+                except Exception as exc:
+                    print(f"Monitor task failed: {exc}", file=sys.stderr)
+        except FuturesTimeout:
+            print("Monitor time budget reached; unfinished tasks skipped.", file=sys.stderr)
+            for future in tasks:
+                future.cancel()
+    return collected
 
 
 def dedupe(items: Iterable[Announcement]) -> list[Announcement]:
@@ -175,6 +321,9 @@ def send_email(new_items: list[Announcement]) -> None:
     for item in new_items[:10]:
         lines.append(f"- {item.title}")
         lines.append(f"  来源：{item.source}")
+        lines.append(f"  可信度：{item.confidence}")
+        lines.append(f"  截止时间：{item.deadline or '未识别，需打开官方公告核验'}")
+        lines.append(f"  说明：{item.status_note}")
         lines.append(f"  链接：{item.url}")
         lines.append("")
 
@@ -195,8 +344,7 @@ def main() -> int:
     previous = load_json(STATE_PATH, {"seen_ids": []})
     seen_ids = set(previous.get("seen_ids", []))
 
-    collected: list[Announcement] = []
-    collected.extend(collect_from_search(config))
+    collected = collect_parallel(config)
 
     current = dedupe(collected)
     new_items = [item for item in current if item.id not in seen_ids]
