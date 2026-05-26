@@ -1,0 +1,34 @@
+name: Job Monitor
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  monitor:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set run timestamp
+        run: echo "GITHUB_RUN_STARTED_AT=$(date -u +'%Y-%m-%dT%H:%M:%SZ')" >> "$GITHUB_ENV"
+
+      - name: Run monitor
+        env:
+          QQ_EMAIL: ${{ secrets.QQ_EMAIL }}
+          QQ_SMTP_CODE: ${{ secrets.QQ_SMTP_CODE }}
+          NOTIFY_TO: ${{ secrets.NOTIFY_TO }}
+        run: python scripts/monitor_jobs.py
+
+      - name: Commit monitor results
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add mgd123/data/announcements.json .monitor_state.json
+          git diff --cached --quiet || git commit -m "Update job monitor data"
+          git push

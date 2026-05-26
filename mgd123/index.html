@@ -1,0 +1,1407 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>果冻的求职之路</title>
+  <meta name="theme-color" content="#101820">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      --bg: #f7f8fb;
+      --panel: #ffffff;
+      --panel-2: #eef4f1;
+      --text: #17202a;
+      --muted: #667085;
+      --line: #d8dee8;
+      --brand: #176b5c;
+      --brand-2: #215a8f;
+      --warn: #b85c00;
+      --danger: #b42318;
+      --ok: #087443;
+      --shadow: 0 10px 28px rgba(31, 41, 55, .08);
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--bg);
+      color: var(--text);
+      letter-spacing: 0;
+    }
+
+    button, input, select, textarea {
+      font: inherit;
+    }
+
+    .app {
+      min-height: 100vh;
+      display: grid;
+      grid-template-columns: 260px minmax(0, 1fr);
+    }
+
+    .sidebar {
+      background: #101820;
+      color: white;
+      padding: 20px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .brand {
+      display: grid;
+      gap: 6px;
+      padding: 6px 8px 14px;
+      border-bottom: 1px solid rgba(255, 255, 255, .14);
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 20px;
+      line-height: 1.25;
+    }
+
+    .brand span {
+      color: #b9c7d5;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .nav {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav button {
+      width: 100%;
+      border: 0;
+      background: transparent;
+      color: #d9e2ec;
+      text-align: left;
+      padding: 10px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .nav button.active,
+    .nav button:hover {
+      background: #213244;
+      color: #fff;
+    }
+
+    .side-note {
+      margin-top: auto;
+      padding: 12px;
+      border: 1px solid rgba(255, 255, 255, .14);
+      border-radius: 8px;
+      color: #cdd7e1;
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    main {
+      min-width: 0;
+      padding: 24px;
+      display: grid;
+      gap: 18px;
+      align-content: start;
+    }
+
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .topbar h2 {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+    }
+
+    .status-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .grid {
+      display: grid;
+      gap: 14px;
+    }
+
+    .grid.metrics {
+      grid-template-columns: repeat(4, minmax(150px, 1fr));
+    }
+
+    .grid.two {
+      grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      box-shadow: var(--shadow);
+      padding: 16px;
+      min-width: 0;
+    }
+
+    .panel.soft {
+      background: var(--panel-2);
+      box-shadow: none;
+    }
+
+    .panel h3 {
+      margin: 0 0 12px;
+      font-size: 17px;
+      line-height: 1.35;
+    }
+
+    .metric {
+      display: grid;
+      gap: 6px;
+      min-height: 94px;
+    }
+
+    .metric span {
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .metric strong {
+      font-size: 28px;
+      line-height: 1.1;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(140px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    label {
+      display: grid;
+      gap: 6px;
+      color: var(--muted);
+      font-size: 13px;
+      min-width: 0;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 9px 10px;
+      color: var(--text);
+      background: #fff;
+      outline: none;
+      min-height: 40px;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 92px;
+      line-height: 1.6;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--brand-2);
+      box-shadow: 0 0 0 3px rgba(33, 90, 143, .12);
+    }
+
+    .actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    button.primary,
+    button.secondary,
+    button.ghost,
+    button.danger {
+      border: 1px solid transparent;
+      min-height: 38px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button.primary {
+      background: var(--brand);
+      color: #fff;
+    }
+
+    button.secondary {
+      background: #e7eef7;
+      color: #183b62;
+      border-color: #c9d8e8;
+    }
+
+    button.ghost {
+      background: #fff;
+      color: var(--text);
+      border-color: var(--line);
+    }
+
+    button.danger {
+      background: #fff1f0;
+      color: var(--danger);
+      border-color: #ffccc7;
+    }
+
+    button:hover {
+      filter: brightness(.98);
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+
+    th {
+      color: #344054;
+      background: #f4f6f9;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    tr:last-child td {
+      border-bottom: 0;
+    }
+
+    a {
+      color: var(--brand-2);
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 24px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #f8fafc;
+      color: #344054;
+      font-size: 12px;
+      margin: 0 4px 4px 0;
+      white-space: nowrap;
+    }
+
+    .tag.ok {
+      color: var(--ok);
+      background: #e8f6ee;
+      border-color: #b7e4c7;
+    }
+
+    .tag.warn {
+      color: var(--warn);
+      background: #fff4e5;
+      border-color: #ffd8a8;
+    }
+
+    .tag.danger {
+      color: var(--danger);
+      background: #fff1f0;
+      border-color: #ffccc7;
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .list li {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .item-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: start;
+    }
+
+    .item-head strong {
+      line-height: 1.5;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    .query-box {
+      display: grid;
+      gap: 10px;
+    }
+
+    .query-output {
+      border: 1px dashed #aeb8c6;
+      background: #fbfcff;
+      border-radius: 8px;
+      padding: 10px;
+      min-height: 58px;
+      line-height: 1.6;
+      word-break: break-all;
+    }
+
+    .toast {
+      position: fixed;
+      right: 20px;
+      bottom: 20px;
+      background: #101820;
+      color: white;
+      border-radius: 8px;
+      padding: 12px 14px;
+      box-shadow: var(--shadow);
+      max-width: min(420px, calc(100vw - 32px));
+      line-height: 1.5;
+      z-index: 20;
+    }
+
+    @media (max-width: 980px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+      }
+
+      .nav {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+      }
+
+      .nav button {
+        text-align: center;
+        grid-template-columns: 1fr;
+        gap: 2px;
+        padding: 8px;
+      }
+
+      .side-note {
+        display: none;
+      }
+
+      .grid.metrics,
+      .grid.two,
+      .controls {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 560px) {
+      main {
+        padding: 16px;
+      }
+
+      .topbar h2 {
+        font-size: 20px;
+      }
+
+      .nav {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>果冻的求职之路</h1>
+        <span>招聘公告、岗位匹配、备考资料和本地提醒</span>
+      </div>
+      <nav class="nav" aria-label="主导航">
+        <button class="active" data-view="dashboard"><span>总</span><span>总览</span></button>
+        <button data-view="targets"><span>企</span><span>企业池</span></button>
+        <button data-view="search"><span>搜</span><span>搜索器</span></button>
+        <button data-view="announcements"><span>告</span><span>公告记录</span></button>
+        <button data-view="exam"><span>题</span><span>备考题库</span></button>
+        <button data-view="settings"><span>设</span><span>设置</span></button>
+      </nav>
+      <div class="side-note">
+        后台提醒由 Codex 自动化执行。网页负责本地管理、查询入口、公告台账和浏览器提醒。
+      </div>
+    </aside>
+
+    <main>
+      <section class="topbar">
+        <div>
+          <h2 id="viewTitle">总览</h2>
+          <div class="muted" id="viewSubtitle">按你的专业和青海求职目标筛选央企国企机会。</div>
+        </div>
+        <div class="status-row">
+          <span class="pill" id="profilePill">光电信息科学与工程</span>
+          <span class="pill">青海</span>
+          <span class="pill">每 6 小时监控</span>
+        </div>
+      </section>
+
+      <section id="dashboard" class="view grid">
+        <div class="grid metrics">
+          <div class="panel metric">
+            <span>企业池</span>
+            <strong id="metricTargets">0</strong>
+            <span>按专业适配筛选</span>
+          </div>
+          <div class="panel metric">
+            <span>公告记录</span>
+            <strong id="metricAnnouncements">0</strong>
+            <span>本地保存</span>
+          </div>
+          <div class="panel metric">
+            <span>临近截止</span>
+            <strong id="metricUrgent">0</strong>
+            <span>7 天内</span>
+          </div>
+          <div class="panel metric">
+            <span>备考任务</span>
+            <strong id="metricTasks">0</strong>
+            <span>未完成</span>
+          </div>
+        </div>
+
+        <div class="grid two">
+          <div class="panel">
+            <h3>近期需要处理</h3>
+            <ul class="list" id="urgentList"></ul>
+          </div>
+          <div class="panel soft">
+            <h3>快速搜索</h3>
+            <div class="query-box">
+              <label>关键词
+                <input id="quickQuery" value="青海 央企 招聘 电子信息 光伏 新能源">
+              </label>
+              <div class="actions">
+                <button class="primary" id="quickSearchBtn">打开搜索</button>
+                <button class="ghost" id="copyQuickBtn">复制查询</button>
+              </div>
+              <div class="muted">建议优先核验官方平台、企业官网和高校就业网。</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>云端监控结果</h3>
+          <div class="muted" id="cloudMeta">正在读取 GitHub Actions 监控数据...</div>
+          <ul class="list" id="cloudList"></ul>
+        </div>
+      </section>
+
+      <section id="targets" class="view hidden grid">
+        <div class="panel">
+          <h3>企业池</h3>
+          <div class="controls">
+            <label>类别
+              <select id="targetCategory">
+                <option value="">全部</option>
+              </select>
+            </label>
+            <label>关键词
+              <input id="targetKeyword" placeholder="例如 光伏、通信、青海盐湖">
+            </label>
+            <label>优先级
+              <select id="targetPriority">
+                <option value="">全部</option>
+                <option value="高">高</option>
+                <option value="中">中</option>
+              </select>
+            </label>
+            <label>操作
+              <button class="secondary" id="resetTargetFilters">清空筛选</button>
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>单位方向</th>
+                  <th>类别</th>
+                  <th>匹配点</th>
+                  <th>优先级</th>
+                  <th>搜索</th>
+                </tr>
+              </thead>
+              <tbody id="targetRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="search" class="view hidden grid">
+        <div class="panel">
+          <h3>招聘搜索器</h3>
+          <div class="controls">
+            <label>单位或方向
+              <input id="searchCompany" placeholder="例如 中国移动青海公司">
+            </label>
+            <label>岗位关键词
+              <input id="searchRole" value="电子信息 自动化 光伏 通信">
+            </label>
+            <label>地区
+              <input id="searchLocation" value="青海">
+            </label>
+            <label>来源限制
+              <select id="searchSource">
+                <option value="">不限</option>
+                <option value="site:iguopin.com">国聘</option>
+                <option value="site:zhaopin.sgcc.com.cn">国家电网招聘平台</option>
+                <option value="site:zhaopin.chnenergy.com.cn">国家能源招聘平台</option>
+                <option value="site:job.mohrss.gov.cn">中国公共招聘网</option>
+              </select>
+            </label>
+          </div>
+          <div class="actions">
+            <button class="primary" id="buildQuery">生成查询</button>
+            <button class="secondary" id="openBing">Bing 搜索</button>
+            <button class="secondary" id="openBaidu">百度搜索</button>
+            <button class="ghost" id="copyQuery">复制查询</button>
+          </div>
+          <div class="query-output" id="queryOutput"></div>
+        </div>
+
+        <div class="panel">
+          <h3>常用入口</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>名称</th>
+                  <th>用途</th>
+                  <th>链接</th>
+                </tr>
+              </thead>
+              <tbody id="sourceRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="announcements" class="view hidden grid">
+        <div class="panel">
+          <h3>新增公告记录</h3>
+          <div class="controls">
+            <label>公告标题
+              <input id="annTitle" placeholder="例如 国网青海省电力有限公司高校毕业生招聘公告">
+            </label>
+            <label>单位
+              <input id="annCompany" placeholder="例如 国网青海省电力有限公司">
+            </label>
+            <label>报名截止
+              <input id="annDeadline" type="date">
+            </label>
+            <label>匹配度
+              <select id="annFit">
+                <option value="高">高</option>
+                <option value="中">中</option>
+                <option value="低">低</option>
+              </select>
+            </label>
+          </div>
+          <div class="controls">
+            <label>链接
+              <input id="annLink" placeholder="https://">
+            </label>
+            <label>状态
+              <select id="annStatus">
+                <option value="待处理">待处理</option>
+                <option value="已报名">已报名</option>
+                <option value="不适合">不适合</option>
+              </select>
+            </label>
+            <label>备注
+              <input id="annNote" placeholder="专业要求、材料、下一步">
+            </label>
+            <label>操作
+              <button class="primary" id="addAnnouncement">保存公告</button>
+            </label>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>公告台账</h3>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>标题</th>
+                  <th>单位</th>
+                  <th>截止</th>
+                  <th>匹配</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="announcementRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="exam" class="view hidden grid">
+        <div class="grid two">
+          <div class="panel">
+            <h3>备考方向</h3>
+            <div id="subjectList" class="list"></div>
+          </div>
+          <div class="panel soft">
+            <h3>资料搜索</h3>
+            <div class="query-box">
+              <label>单位
+                <select id="examCompany"></select>
+              </label>
+              <label>科目
+                <select id="examSubject"></select>
+              </label>
+              <div class="actions">
+                <button class="primary" id="openExamSearch">搜索资料</button>
+                <button class="ghost" id="copyExamSearch">复制查询</button>
+              </div>
+              <div class="query-output" id="examQueryOutput"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>本周任务</h3>
+          <div class="controls">
+            <label>任务
+              <input id="taskText" placeholder="例如 做一套行测资料分析">
+            </label>
+            <label>截止日期
+              <input id="taskDue" type="date">
+            </label>
+            <label>类别
+              <select id="taskType">
+                <option value="专业课">专业课</option>
+                <option value="行测">行测</option>
+                <option value="企业文化">企业文化</option>
+                <option value="投递材料">投递材料</option>
+              </select>
+            </label>
+            <label>操作
+              <button class="primary" id="addTask">添加任务</button>
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>任务</th>
+                  <th>类别</th>
+                  <th>截止</th>
+                  <th>状态</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="taskRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="settings" class="view hidden grid">
+        <div class="panel">
+          <h3>个人画像</h3>
+          <div class="controls">
+            <label>学历阶段
+              <input id="profileStage">
+            </label>
+            <label>专业
+              <input id="profileMajor">
+            </label>
+            <label>目标地区
+              <input id="profileLocation">
+            </label>
+            <label>求职方向
+              <input id="profileDirection">
+            </label>
+          </div>
+          <div class="actions">
+            <button class="primary" id="saveProfile">保存画像</button>
+            <button class="secondary" id="requestNotify">开启浏览器提醒</button>
+            <button class="secondary hidden" id="installApp">安装到手机桌面</button>
+          </div>
+          <div class="muted">浏览器提醒只在这个网页打开时工作；后台定时监控由 Codex 自动化负责。</div>
+        </div>
+
+        <div class="panel">
+          <h3>数据管理</h3>
+          <div class="actions">
+            <button class="secondary" id="exportData">导出 JSON</button>
+            <button class="ghost" id="importDataBtn">导入 JSON</button>
+            <button class="danger" id="resetData">重置本地数据</button>
+            <input class="hidden" id="importData" type="file" accept="application/json">
+          </div>
+          <textarea id="dataBox" placeholder="导出的 JSON 会显示在这里，也可以粘贴 JSON 后导入。"></textarea>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+    const STORAGE_KEY = "qh_career_watch_v1";
+
+    const seed = {
+      profile: {
+        stage: "大四，已完成毕业答辩，即将毕业",
+        major: "光电信息科学与工程",
+        location: "青海",
+        direction: "央企/国企，能源电力、新能源、通信、电子信息、光电、自动化"
+      },
+      announcements: [],
+      tasks: [
+        { id: crypto.randomUUID(), text: "整理国网、国家能源、国家电投网申材料", type: "投递材料", due: "", done: false },
+        { id: crypto.randomUUID(), text: "复习电路基础、模电、数电核心概念", type: "专业课", due: "", done: false },
+        { id: crypto.randomUUID(), text: "每周完成 2 套行测资料分析与判断推理", type: "行测", due: "", done: false }
+      ],
+      notified: {}
+    };
+
+    const targets = [
+      ["国家电网青海", "能源电力", "电气、通信、信息化、调度自动化", "高"],
+      ["国家能源集团青海", "能源电力", "电力、新能源、运维、信息化", "高"],
+      ["国家电投/黄河水电", "能源电力", "水电、光伏、储能、生产运行", "高"],
+      ["中国华能青海", "新能源", "光伏、风电、电站运维", "高"],
+      ["中国大唐青海", "新能源", "电力生产、新能源运维", "高"],
+      ["中国华电青海", "新能源", "光伏、风电、自动化", "高"],
+      ["三峡能源青海", "新能源", "光伏、储能、新能源项目", "高"],
+      ["中广核新能源青海", "新能源", "光伏、风电、生产运维", "高"],
+      ["中核汇能青海", "新能源", "新能源、电气、自动化", "中"],
+      ["华润电力青海", "新能源", "新能源运营、电气、信息化", "中"],
+      ["中国电建", "工程建设", "电力设计、光伏项目、自动化", "中"],
+      ["中国能建", "工程建设", "电力工程、运维、技术管理", "中"],
+      ["东方电气/哈电集团", "装备制造", "电气设备、测试、自动化", "中"],
+      ["中国中车", "装备制造", "电气、控制、测试、信息化", "中"],
+      ["中国移动青海", "通信信息", "通信、网络、信息化、数据", "高"],
+      ["中国电信青海", "通信信息", "通信、云网、信息安全", "高"],
+      ["中国联通青海", "通信信息", "通信网络、数字化", "中"],
+      ["中国铁塔青海", "通信信息", "通信基础设施、运维", "中"],
+      ["中国电科", "电子光电", "电子信息、光电、测试、信号处理", "中"],
+      ["中国电子", "电子光电", "电子信息、软件、信息安全", "中"],
+      ["航天科技/航天科工", "军工央企", "光电、通信、电子、测控", "中"],
+      ["中航工业/兵器工业", "军工央企", "光电、电子、测试、自动化", "中"],
+      ["青海盐湖", "省属国企", "自动化、仪表、信息化、生产技术", "高"],
+      ["西部矿业", "省属国企", "自动化、信息化、设备运维", "中"],
+      ["青海省投资集团", "省属国企", "新能源、电力、信息化", "中"],
+      ["青海省交通控股", "省属国企", "信息化、通信、机电系统", "中"]
+    ].map(([name, category, fit, priority]) => ({ name, category, fit, priority }));
+
+    const sources = [
+      ["国家电网招聘平台", "国网公告和网申", "https://zhaopin.sgcc.com.cn"],
+      ["国家能源集团招聘平台", "国家能源公告和网申", "https://zhaopin.chnenergy.com.cn"],
+      ["国聘", "央国企招聘聚合", "https://www.iguopin.com"],
+      ["中国公共招聘网", "公共就业招聘信息", "https://job.mohrss.gov.cn"],
+      ["中国移动招聘", "运营商校招和社招", "https://job.10086.cn"],
+      ["中国电信招聘", "运营商校招和社招", "https://job.chinatelecom.com.cn"],
+      ["中国联通招聘", "运营商校招和社招", "https://zglt2024.zhaopin.com"],
+      ["中国铁塔招聘", "通信基础设施岗位", "https://zhaopin.chinatowercom.cn"]
+    ];
+
+    const subjects = [
+      "电路基础", "模拟电子技术", "数字电子技术", "信号与系统", "通信原理",
+      "光电检测技术", "光电子技术", "自动控制原理", "电力系统基础",
+      "电力电子技术", "新能源发电", "光伏发电原理", "储能基础",
+      "计算机网络", "C 语言/Python 基础", "行测", "企业文化", "时政"
+    ];
+
+    const examCompanies = [
+      "国家电网", "国家能源集团", "国家电投 黄河水电", "华能", "大唐", "华电",
+      "三峡能源", "中广核新能源", "中国移动", "中国电信", "中国联通", "中国铁塔",
+      "中国电科", "青海盐湖", "西部矿业"
+    ];
+
+    let state = loadState();
+    let deferredInstallPrompt = null;
+    let cloudAnnouncements = [];
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return structuredClone(seed);
+      try {
+        return { ...structuredClone(seed), ...JSON.parse(raw) };
+      } catch {
+        return structuredClone(seed);
+      }
+    }
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      render();
+    }
+
+    function daysUntil(dateText) {
+      if (!dateText) return null;
+      const now = new Date();
+      const date = new Date(dateText + "T23:59:59");
+      return Math.ceil((date - now) / 86400000);
+    }
+
+    function toast(message) {
+      const box = document.getElementById("toast");
+      box.textContent = message;
+      box.classList.remove("hidden");
+      clearTimeout(toast.timer);
+      toast.timer = setTimeout(() => box.classList.add("hidden"), 2600);
+    }
+
+    function buildSearchQuery(company, role, location, source) {
+      return [source, company, location, "招聘", role].filter(Boolean).join(" ").replace(/\s+/g, " ").trim();
+    }
+
+    function openSearch(engine, query) {
+      const encoded = encodeURIComponent(query);
+      const url = engine === "baidu"
+        ? `https://www.baidu.com/s?wd=${encoded}`
+        : `https://www.bing.com/search?q=${encoded}`;
+      window.open(url, "_blank", "noopener,noreferrer");
+    }
+
+    async function copyText(text) {
+      try {
+        await navigator.clipboard.writeText(text);
+        toast("已复制");
+      } catch {
+        toast("复制失败，请手动选择文本");
+      }
+    }
+
+    function render() {
+      document.getElementById("profilePill").textContent = state.profile.major || "光电信息科学与工程";
+      renderMetrics();
+      renderUrgent();
+      renderTargets();
+      renderSources();
+      renderAnnouncements();
+      renderSubjects();
+      renderTasks();
+      renderSettings();
+      renderCloudAnnouncements();
+      updateQuery();
+      updateExamQuery();
+    }
+
+    function renderMetrics() {
+      document.getElementById("metricTargets").textContent = targets.length;
+      document.getElementById("metricAnnouncements").textContent = state.announcements.length;
+      document.getElementById("metricUrgent").textContent = state.announcements.filter(a => {
+        const d = daysUntil(a.deadline);
+        return a.status !== "已报名" && d !== null && d >= 0 && d <= 7;
+      }).length;
+      document.getElementById("metricTasks").textContent = state.tasks.filter(t => !t.done).length;
+    }
+
+    function renderUrgent() {
+      const list = document.getElementById("urgentList");
+      const items = state.announcements
+        .filter(a => a.status !== "已报名")
+        .map(a => ({ ...a, days: daysUntil(a.deadline) }))
+        .filter(a => a.days !== null && a.days >= 0 && a.days <= 14)
+        .sort((a, b) => a.days - b.days)
+        .slice(0, 6);
+
+      if (!items.length) {
+        list.innerHTML = `<li><strong>暂无临近截止公告</strong><span class="muted">先用搜索器找到公告后加入台账，后续这里会自动排序。</span></li>`;
+        return;
+      }
+
+      list.innerHTML = items.map(a => `
+        <li>
+          <div class="item-head">
+            <strong>${escapeHtml(a.title)}</strong>
+            <span class="tag ${a.days <= 3 ? "danger" : "warn"}">${a.days} 天</span>
+          </div>
+          <div class="muted">${escapeHtml(a.company)} · 截止 ${a.deadline || "未填"}</div>
+          ${a.link ? `<a href="${escapeAttr(a.link)}" target="_blank" rel="noreferrer">打开公告</a>` : ""}
+        </li>
+      `).join("");
+    }
+
+    function renderCloudAnnouncements() {
+      const list = document.getElementById("cloudList");
+      if (!list) return;
+      if (!cloudAnnouncements.length) {
+        list.innerHTML = `<li><strong>暂无云端公告</strong><span class="muted">GitHub Actions 首次运行后会在这里显示监控结果。</span></li>`;
+        return;
+      }
+      list.innerHTML = cloudAnnouncements.slice(0, 8).map(item => `
+        <li>
+          <div class="item-head">
+            <strong>${escapeHtml(item.title)}</strong>
+            <span class="tag ${item.score >= 14 ? "ok" : "warn"}">匹配 ${item.score}</span>
+          </div>
+          <div class="muted">${escapeHtml(item.source)} · ${escapeHtml((item.matched_keywords || []).slice(0, 8).join(" / "))}</div>
+          <div class="actions">
+            <a href="${escapeAttr(item.url)}" target="_blank" rel="noreferrer">打开线索</a>
+            <button class="ghost" data-save-cloud="${escapeAttr(item.id)}">加入台账</button>
+          </div>
+        </li>
+      `).join("");
+    }
+
+    function renderTargets() {
+      const categorySelect = document.getElementById("targetCategory");
+      if (categorySelect.options.length === 1) {
+        [...new Set(targets.map(t => t.category))].forEach(c => {
+          const option = document.createElement("option");
+          option.value = c;
+          option.textContent = c;
+          categorySelect.appendChild(option);
+        });
+      }
+
+      const category = categorySelect.value;
+      const keyword = document.getElementById("targetKeyword").value.trim();
+      const priority = document.getElementById("targetPriority").value;
+      const rows = targets.filter(t => {
+        const text = `${t.name} ${t.category} ${t.fit}`;
+        return (!category || t.category === category)
+          && (!priority || t.priority === priority)
+          && (!keyword || text.includes(keyword));
+      });
+
+      document.getElementById("targetRows").innerHTML = rows.map(t => `
+        <tr>
+          <td><strong>${escapeHtml(t.name)}</strong></td>
+          <td>${escapeHtml(t.category)}</td>
+          <td>${escapeHtml(t.fit)}</td>
+          <td><span class="tag ${t.priority === "高" ? "ok" : ""}">${t.priority}</span></td>
+          <td><button class="ghost" data-target-search="${escapeAttr(t.name)}">搜索</button></td>
+        </tr>
+      `).join("");
+    }
+
+    function renderSources() {
+      document.getElementById("sourceRows").innerHTML = sources.map(([name, use, url]) => `
+        <tr>
+          <td><strong>${escapeHtml(name)}</strong></td>
+          <td>${escapeHtml(use)}</td>
+          <td><a href="${escapeAttr(url)}" target="_blank" rel="noreferrer">${escapeHtml(url)}</a></td>
+        </tr>
+      `).join("");
+    }
+
+    function renderAnnouncements() {
+      const rows = [...state.announcements].sort((a, b) => {
+        const ad = a.deadline || "9999-12-31";
+        const bd = b.deadline || "9999-12-31";
+        return ad.localeCompare(bd);
+      });
+      document.getElementById("announcementRows").innerHTML = rows.map(a => {
+        const d = daysUntil(a.deadline);
+        const urgency = d !== null && d <= 3 && d >= 0 ? "danger" : d !== null && d <= 7 && d >= 0 ? "warn" : "";
+        return `
+          <tr>
+            <td>
+              <strong>${escapeHtml(a.title)}</strong>
+              <div class="muted">${escapeHtml(a.note || "")}</div>
+              ${a.link ? `<a href="${escapeAttr(a.link)}" target="_blank" rel="noreferrer">原文链接</a>` : ""}
+            </td>
+            <td>${escapeHtml(a.company)}</td>
+            <td><span class="tag ${urgency}">${a.deadline || "未填"}</span></td>
+            <td><span class="tag ${a.fit === "高" ? "ok" : a.fit === "中" ? "warn" : ""}">${a.fit}</span></td>
+            <td>${escapeHtml(a.status)}</td>
+            <td>
+              <button class="ghost" data-toggle-ann="${a.id}">${a.status === "已报名" ? "改待处理" : "标已报名"}</button>
+              <button class="danger" data-delete-ann="${a.id}">删除</button>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function renderSubjects() {
+      document.getElementById("subjectList").innerHTML = subjects.map(s => `
+        <li>
+          <div class="item-head">
+            <strong>${escapeHtml(s)}</strong>
+            <button class="ghost" data-subject-search="${escapeAttr(s)}">搜索资料</button>
+          </div>
+          <span class="muted">建议找官方大纲、公开样题、经验帖和教材知识点。</span>
+        </li>
+      `).join("");
+
+      const examCompany = document.getElementById("examCompany");
+      if (!examCompany.options.length) {
+        examCompanies.forEach(c => examCompany.add(new Option(c, c)));
+      }
+      const examSubject = document.getElementById("examSubject");
+      if (!examSubject.options.length) {
+        subjects.forEach(s => examSubject.add(new Option(s, s)));
+      }
+    }
+
+    function renderTasks() {
+      document.getElementById("taskRows").innerHTML = state.tasks.map(t => `
+        <tr>
+          <td><strong>${escapeHtml(t.text)}</strong></td>
+          <td>${escapeHtml(t.type)}</td>
+          <td>${t.due || "未填"}</td>
+          <td><span class="tag ${t.done ? "ok" : "warn"}">${t.done ? "已完成" : "进行中"}</span></td>
+          <td>
+            <button class="ghost" data-toggle-task="${t.id}">${t.done ? "标进行中" : "完成"}</button>
+            <button class="danger" data-delete-task="${t.id}">删除</button>
+          </td>
+        </tr>
+      `).join("");
+    }
+
+    function renderSettings() {
+      document.getElementById("profileStage").value = state.profile.stage || "";
+      document.getElementById("profileMajor").value = state.profile.major || "";
+      document.getElementById("profileLocation").value = state.profile.location || "";
+      document.getElementById("profileDirection").value = state.profile.direction || "";
+    }
+
+    function updateQuery() {
+      const query = buildSearchQuery(
+        document.getElementById("searchCompany").value,
+        document.getElementById("searchRole").value,
+        document.getElementById("searchLocation").value,
+        document.getElementById("searchSource").value
+      );
+      document.getElementById("queryOutput").textContent = query;
+      return query;
+    }
+
+    function updateExamQuery() {
+      const company = document.getElementById("examCompany").value || "国家电网";
+      const subject = document.getElementById("examSubject").value || "电路基础";
+      const query = `${company} 校园招聘 笔试 ${subject} 题型 大纲 公开样题 经验`;
+      document.getElementById("examQueryOutput").textContent = query;
+      return query;
+    }
+
+    function checkBrowserReminders() {
+      if (!("Notification" in window) || Notification.permission !== "granted") return;
+      const today = new Date().toISOString().slice(0, 10);
+      state.announcements.forEach(a => {
+        const d = daysUntil(a.deadline);
+        const key = `${a.id}-${today}`;
+        if (a.status !== "已报名" && d !== null && d >= 0 && d <= 3 && !state.notified[key]) {
+          new Notification("招聘公告即将截止", {
+            body: `${a.company}：${a.title}，还有 ${d} 天截止`
+          });
+          state.notified[key] = true;
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+      });
+    }
+
+    function escapeHtml(text) {
+      return String(text ?? "").replace(/[&<>"']/g, ch => ({
+        "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+      }[ch]));
+    }
+
+    function escapeAttr(text) {
+      return escapeHtml(text).replace(/`/g, "&#96;");
+    }
+
+    document.querySelector(".nav").addEventListener("click", event => {
+      const button = event.target.closest("button[data-view]");
+      if (!button) return;
+      document.querySelectorAll(".nav button").forEach(b => b.classList.remove("active"));
+      button.classList.add("active");
+      document.querySelectorAll(".view").forEach(v => v.classList.add("hidden"));
+      document.getElementById(button.dataset.view).classList.remove("hidden");
+      const titles = {
+        dashboard: ["总览", "按你的专业和青海求职目标筛选央企国企机会。"],
+        targets: ["企业池", "覆盖能源电力、新能源、通信、电子信息、光电军工和省属国企。"],
+        search: ["搜索器", "生成可直接打开的招聘搜索入口。"],
+        announcements: ["公告记录", "保存公告、截止日期、匹配度和投递状态。"],
+        exam: ["备考题库", "检索合法公开资料并管理每周复习任务。"],
+        settings: ["设置", "维护个人画像、本地数据和浏览器提醒。"]
+      };
+      document.getElementById("viewTitle").textContent = titles[button.dataset.view][0];
+      document.getElementById("viewSubtitle").textContent = titles[button.dataset.view][1];
+    });
+
+    document.addEventListener("input", event => {
+      if (["searchCompany", "searchRole", "searchLocation", "searchSource"].includes(event.target.id)) updateQuery();
+      if (["examCompany", "examSubject"].includes(event.target.id)) updateExamQuery();
+      if (["targetCategory", "targetKeyword", "targetPriority"].includes(event.target.id)) renderTargets();
+    });
+
+    document.addEventListener("change", event => {
+      if (["targetCategory", "targetPriority"].includes(event.target.id)) renderTargets();
+      if (["examCompany", "examSubject"].includes(event.target.id)) updateExamQuery();
+    });
+
+    document.addEventListener("click", event => {
+      const targetSearch = event.target.closest("[data-target-search]");
+      if (targetSearch) {
+        const name = targetSearch.dataset.targetSearch;
+        document.getElementById("searchCompany").value = name;
+        document.getElementById("searchLocation").value = "青海";
+        document.getElementById("searchRole").value = "招聘 电子信息 自动化 通信 光伏";
+        updateQuery();
+        openSearch("bing", updateQuery());
+      }
+
+      const subjectSearch = event.target.closest("[data-subject-search]");
+      if (subjectSearch) {
+        const subject = subjectSearch.dataset.subjectSearch;
+        document.getElementById("examSubject").value = subject;
+        updateExamQuery();
+        openSearch("bing", updateExamQuery());
+      }
+
+      const toggleAnn = event.target.closest("[data-toggle-ann]");
+      if (toggleAnn) {
+        const item = state.announcements.find(a => a.id === toggleAnn.dataset.toggleAnn);
+        if (item) item.status = item.status === "已报名" ? "待处理" : "已报名";
+        saveState();
+      }
+
+      const deleteAnn = event.target.closest("[data-delete-ann]");
+      if (deleteAnn) {
+        state.announcements = state.announcements.filter(a => a.id !== deleteAnn.dataset.deleteAnn);
+        saveState();
+      }
+
+      const saveCloud = event.target.closest("[data-save-cloud]");
+      if (saveCloud) {
+        const item = cloudAnnouncements.find(x => x.id === saveCloud.dataset.saveCloud);
+        if (!item) return;
+        if (state.announcements.some(a => a.link === item.url)) return toast("台账里已有这条线索");
+        state.announcements.push({
+          id: crypto.randomUUID(),
+          title: item.title,
+          company: item.source,
+          deadline: "",
+          fit: item.score >= 14 ? "高" : "中",
+          link: item.url,
+          status: "待处理",
+          note: `云端监控匹配：${(item.matched_keywords || []).join(" / ")}`
+        });
+        saveState();
+        toast("已加入公告台账");
+      }
+
+      const toggleTask = event.target.closest("[data-toggle-task]");
+      if (toggleTask) {
+        const item = state.tasks.find(t => t.id === toggleTask.dataset.toggleTask);
+        if (item) item.done = !item.done;
+        saveState();
+      }
+
+      const deleteTask = event.target.closest("[data-delete-task]");
+      if (deleteTask) {
+        state.tasks = state.tasks.filter(t => t.id !== deleteTask.dataset.deleteTask);
+        saveState();
+      }
+    });
+
+    document.getElementById("quickSearchBtn").addEventListener("click", () => openSearch("bing", document.getElementById("quickQuery").value));
+    document.getElementById("copyQuickBtn").addEventListener("click", () => copyText(document.getElementById("quickQuery").value));
+    document.getElementById("buildQuery").addEventListener("click", () => toast("查询已生成"));
+    document.getElementById("openBing").addEventListener("click", () => openSearch("bing", updateQuery()));
+    document.getElementById("openBaidu").addEventListener("click", () => openSearch("baidu", updateQuery()));
+    document.getElementById("copyQuery").addEventListener("click", () => copyText(updateQuery()));
+    document.getElementById("openExamSearch").addEventListener("click", () => openSearch("bing", updateExamQuery()));
+    document.getElementById("copyExamSearch").addEventListener("click", () => copyText(updateExamQuery()));
+    document.getElementById("resetTargetFilters").addEventListener("click", () => {
+      document.getElementById("targetCategory").value = "";
+      document.getElementById("targetKeyword").value = "";
+      document.getElementById("targetPriority").value = "";
+      renderTargets();
+    });
+
+    document.getElementById("addAnnouncement").addEventListener("click", () => {
+      const title = document.getElementById("annTitle").value.trim();
+      if (!title) return toast("请填写公告标题");
+      state.announcements.push({
+        id: crypto.randomUUID(),
+        title,
+        company: document.getElementById("annCompany").value.trim(),
+        deadline: document.getElementById("annDeadline").value,
+        fit: document.getElementById("annFit").value,
+        link: document.getElementById("annLink").value.trim(),
+        status: document.getElementById("annStatus").value,
+        note: document.getElementById("annNote").value.trim()
+      });
+      ["annTitle", "annCompany", "annDeadline", "annLink", "annNote"].forEach(id => document.getElementById(id).value = "");
+      saveState();
+      toast("公告已保存");
+    });
+
+    document.getElementById("addTask").addEventListener("click", () => {
+      const text = document.getElementById("taskText").value.trim();
+      if (!text) return toast("请填写任务");
+      state.tasks.push({
+        id: crypto.randomUUID(),
+        text,
+        due: document.getElementById("taskDue").value,
+        type: document.getElementById("taskType").value,
+        done: false
+      });
+      document.getElementById("taskText").value = "";
+      document.getElementById("taskDue").value = "";
+      saveState();
+      toast("任务已添加");
+    });
+
+    document.getElementById("saveProfile").addEventListener("click", () => {
+      state.profile = {
+        stage: document.getElementById("profileStage").value.trim(),
+        major: document.getElementById("profileMajor").value.trim(),
+        location: document.getElementById("profileLocation").value.trim(),
+        direction: document.getElementById("profileDirection").value.trim()
+      };
+      saveState();
+      toast("画像已保存");
+    });
+
+    document.getElementById("requestNotify").addEventListener("click", async () => {
+      if (!("Notification" in window)) return toast("当前浏览器不支持通知");
+      const permission = await Notification.requestPermission();
+      toast(permission === "granted" ? "浏览器提醒已开启" : "未获得通知权限");
+    });
+
+    document.getElementById("installApp").addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return toast("当前浏览器暂未提供安装入口");
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      document.getElementById("installApp").classList.add("hidden");
+    });
+
+    document.getElementById("exportData").addEventListener("click", () => {
+      document.getElementById("dataBox").value = JSON.stringify(state, null, 2);
+      toast("已导出到文本框");
+    });
+
+    document.getElementById("importDataBtn").addEventListener("click", () => {
+      const text = document.getElementById("dataBox").value.trim();
+      if (text) {
+        try {
+          state = { ...structuredClone(seed), ...JSON.parse(text) };
+          saveState();
+          return toast("已从文本框导入");
+        } catch {
+          return toast("JSON 格式不正确");
+        }
+      }
+      document.getElementById("importData").click();
+    });
+
+    document.getElementById("importData").addEventListener("change", async event => {
+      const file = event.target.files[0];
+      if (!file) return;
+      try {
+        state = { ...structuredClone(seed), ...JSON.parse(await file.text()) };
+        saveState();
+        toast("已从文件导入");
+      } catch {
+        toast("导入失败");
+      }
+    });
+
+    document.getElementById("resetData").addEventListener("click", () => {
+      if (!confirm("确认重置本地数据？公告和任务会清空。")) return;
+      state = structuredClone(seed);
+      saveState();
+      toast("已重置");
+    });
+
+    render();
+    setInterval(checkBrowserReminders, 60000);
+
+    fetch("./data/announcements.json", { cache: "no-store" })
+      .then(resp => resp.ok ? resp.json() : null)
+      .then(data => {
+        if (!data) return;
+        cloudAnnouncements = data.items || [];
+        const meta = document.getElementById("cloudMeta");
+        if (meta) {
+          meta.textContent = data.updated_at
+            ? `更新时间：${data.updated_at}，共 ${data.count || cloudAnnouncements.length} 条线索。第三方搜索结果需回到官方公告核验。`
+            : data.note || "GitHub Actions 首次运行后会更新这里。";
+        }
+        renderCloudAnnouncements();
+      })
+      .catch(() => {
+        const meta = document.getElementById("cloudMeta");
+        if (meta) meta.textContent = "暂时无法读取云端监控数据。";
+      });
+
+    window.addEventListener("beforeinstallprompt", event => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      document.getElementById("installApp").classList.remove("hidden");
+    });
+
+    if ("serviceWorker" in navigator && location.protocol !== "file:") {
+      navigator.serviceWorker.register("./service-worker.js").catch(() => {});
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,19 @@
+{
+  "name": "果冻的求职之路",
+  "short_name": "求职之路",
+  "description": "面向青海央企国企求职的招聘公告、岗位匹配和备考管理工具。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f7f8fb",
+  "theme_color": "#101820",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
