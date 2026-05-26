@@ -48,7 +48,7 @@ def write_json(path: Path, data) -> None:
     path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
 
-def fetch(url: str, timeout: int = 18) -> str:
+def fetch(url: str, timeout: int = 8) -> str:
     req = Request(
         url,
         headers={
@@ -130,7 +130,7 @@ def collect_from_source(source: dict, config: dict) -> list[Announcement]:
 
 def collect_from_search(config: dict) -> list[Announcement]:
     items: list[Announcement] = []
-    for query in config["search_queries"]:
+    for query in config["search_queries"][:4]:
         url = "https://www.bing.com/search?q=" + quote_plus(query)
         try:
             page = fetch(url)
@@ -196,8 +196,6 @@ def main() -> int:
     seen_ids = set(previous.get("seen_ids", []))
 
     collected: list[Announcement] = []
-    for source in config.get("sources", []):
-        collected.extend(collect_from_source(source, config))
     collected.extend(collect_from_search(config))
 
     current = dedupe(collected)
@@ -214,7 +212,10 @@ def main() -> int:
 
     if new_items:
         print(f"New items: {len(new_items)}")
-        send_email(new_items)
+        try:
+            send_email(new_items)
+        except Exception as exc:
+            print(f"Email send failed: {exc}", file=sys.stderr)
     else:
         print("No new items.")
     return 0
