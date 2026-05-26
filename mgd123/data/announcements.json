@@ -1,55 +1,77 @@
 {
-  "updated_at": "2026-05-26T15:54:29Z",
-  "count": 4,
+  "updated_at": "2026-05-26T22:51:46Z",
+  "count": 5,
   "items": [
     {
-      "id": "7bc0b5321ab0829d",
-      "title": "国家能源集团 2026校园招聘",
-      "source": "Bing: 国家能源集团 青海 招聘 校园招聘",
-      "url": "https://www.bing.com/ck/a?!&amp;&amp;p=4f49ddd332e26e0c00aa787a09c4864ddce7615fad9ad48108768838d8c79812JmltdHM9MTc3OTc1MzYwMA&amp;ptn=3&amp;ver=2&amp;hsh=4&amp;fclid=3b5c1f87-e1ec-6944-283a-08e2e04a6810&amp;u=a1aHR0cHM6Ly9nam55LnNxdWFyZWVkdS5jb20v&amp;ntb=1",
+      "id": "5d5431844a78bf99",
+      "title": "校园招聘",
+      "source": "国家能源集团招聘平台",
+      "url": "https://zhaopin.chnenergy.com.cn",
       "matched_keywords": [
         "招聘",
-        "校园招聘",
-        "国家能源"
+        "校园招聘"
       ],
-      "score": 9,
-      "found_at": "2026-05-26T15:54:29Z"
+      "score": 11,
+      "found_at": "2026-05-26T22:51:46Z",
+      "deadline": "",
+      "confidence": "官方来源待核验",
+      "status_note": "官方入口线索，未识别年份，需打开公告核验"
     },
     {
-      "id": "9e7b3baaa90c5e22",
-      "title": "国家能源集团 招聘2026春招官网入口：https://zhaopin.chnenergy.com.cn",
-      "source": "Bing: 国家能源集团 青海 招聘 校园招聘",
-      "url": "https://www.bing.com/ck/a?!&amp;&amp;p=e807fe90a9fbb3717170978eeeaaf3578ca68407e579533e736ffe3206cb0eefJmltdHM9MTc3OTc1MzYwMA&amp;ptn=3&amp;ver=2&amp;hsh=4&amp;fclid=3b5c1f87-e1ec-6944-283a-08e2e04a6810&amp;u=a1aHR0cHM6Ly93d3cuZ2FvZHVuLmNvbS9qci8xNzUzMDA5Lmh0bWw&amp;ntb=1",
+      "id": "efd109a2d5a058b9",
+      "title": "招聘公告",
+      "source": "国家能源集团招聘平台",
+      "url": "javascript:myjump(",
       "matched_keywords": [
-        "招聘",
-        "国家能源"
+        "招聘"
       ],
-      "score": 8,
-      "found_at": "2026-05-26T15:54:29Z"
+      "score": 10,
+      "found_at": "2026-05-26T22:51:46Z",
+      "deadline": "",
+      "confidence": "待核验线索",
+      "status_note": "官方入口线索，未识别年份，需打开公告核验"
     },
     {
-      "id": "f4d8bad4d513db69",
-      "title": "国家能源 投资 集团 有限责任公司2026年高校毕业生统招6400人公告,内 …",
-      "source": "Bing: 国家能源集团 青海 招聘 校园招聘",
-      "url": "https://www.bing.com/ck/a?!&amp;&amp;p=0c6e7a73ba1e51f8143472db87f0bc8ff102a256c671913a699b086ffa50fec2JmltdHM9MTc3OTc1MzYwMA&amp;ptn=3&amp;ver=2&amp;hsh=4&amp;fclid=3b5c1f87-e1ec-6944-283a-08e2e04a6810&amp;u=a1aHR0cHM6Ly93d3cubm1nY3lyYy5jb20vYXJ0aWNsZS81NzkwLmh0bWw&amp;ntb=1",
+      "id": "6083f36124d040aa",
+      "title": "招聘公示",
+      "source": "国家能源集团招聘平台",
+      "url": "javascript:myjump(",
       "matched_keywords": [
-        "高校毕业生",
-        "国家能源"
+        "招聘"
       ],
-      "score": 8,
-      "found_at": "2026-05-26T15:54:29Z"
+      "score": 10,
+      "found_at": "2026-05-26T22:51:46Z",
+      "deadline": "",
+      "confidence": "待核验线索",
+      "status_note": "官方入口线索，未识别年份，需打开公告核验"
     },
     {
-      "id": "03f531c1d635318e",
-      "title": "2026 国家能源 投资 集团 招聘公告汇总（7665余人） - 高顿央国企招聘",
-      "source": "Bing: 国家能源集团 青海 招聘 校园招聘",
-      "url": "https://www.bing.com/ck/a?!&amp;&amp;p=8f6ab441ead16b2834dc319ca9d4e02fd336474c86193c92e0034fc76ca85b17JmltdHM9MTc3OTc1MzYwMA&amp;ptn=3&amp;ver=2&amp;hsh=4&amp;fclid=3b5c1f87-e1ec-6944-283a-08e2e04a6810&amp;u=a1aHR0cHM6Ly93d3cuZ3d5LmNvbS9ncXpwLzM4ODM4Mi5odG1s&amp;ntb=1",
+      "id": "7a514355af5adc01",
+      "title": "社会招聘",
+      "source": "国家能源集团招聘平台",
+      "url": "javascript:recTypeSerch(",
       "matched_keywords": [
-        "招聘",
-        "国家能源"
+        "招聘"
       ],
-      "score": 8,
-      "found_at": "2026-05-26T15:54:29Z"
+      "score": 10,
+      "found_at": "2026-05-26T22:51:46Z",
+      "deadline": "",
+      "confidence": "待核验线索",
+      "status_note": "官方入口线索，未识别年份，需打开公告核验"
+    },
+    {
+      "id": "173191a891452662",
+      "title": "社会招聘",
+      "source": "国家能源集团招聘平台",
+      "url": "https://zhaopin.chnenergy.com.cn",
+      "matched_keywords": [
+        "招聘"
+      ],
+      "score": 10,
+      "found_at": "2026-05-26T22:51:46Z",
+      "deadline": "",
+      "confidence": "官方来源待核验",
+      "status_note": "官方入口线索，未识别年份，需打开公告核验"
     }
   ],
   "note": "自动监控为 best-effort，第三方搜索结果必须回到官方来源核验。"
