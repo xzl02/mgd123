@@ -1004,7 +1004,8 @@
           <div class="muted">${escapeHtml(item.source)} · ${escapeHtml(item.status_note || "")}</div>
           <div class="muted">${escapeHtml((item.matched_keywords || []).slice(0, 8).join(" / "))}</div>
           <div class="actions">
-            <a href="${escapeAttr(item.url)}" target="_blank" rel="noreferrer">打开线索</a>
+            ${isUsableUrl(item.url) ? `<a href="${escapeAttr(item.url)}" target="_blank" rel="noreferrer">打开官网/线索</a>` : ""}
+            <a href="${escapeAttr(item.verify_url || ("https://www.bing.com/search?q=" + encodeURIComponent(item.title)))}" target="_blank" rel="noreferrer">搜索核验</a>
             <button class="ghost" data-save-cloud="${escapeAttr(item.id)}">加入台账</button>
           </div>
         </li>
@@ -1144,6 +1145,18 @@
       return query;
     }
 
+    function isUsableUrl(url) {
+      if (!url) return false;
+      try {
+        const parsed = new URL(url);
+        if (!["http:", "https:"].includes(parsed.protocol)) return false;
+        if (parsed.hostname.includes("bing.com") || parsed.hostname.includes("microsoft.com")) return false;
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
     function checkBrowserReminders() {
       if (!("Notification" in window) || Notification.permission !== "granted") return;
       const today = new Date().toISOString().slice(0, 10);
@@ -1245,7 +1258,7 @@
           fit: item.score >= 14 ? "高" : "中",
           link: item.url,
           status: "待处理",
-          note: `${item.confidence || "待核验"}；${item.status_note || ""}；云端监控匹配：${(item.matched_keywords || []).join(" / ")}`
+          note: `${item.confidence || "待核验"}；${item.status_note || ""}；搜索核验：${item.verify_url || ""}；云端监控匹配：${(item.matched_keywords || []).join(" / ")}`
         });
         saveState();
         toast("已加入公告台账");

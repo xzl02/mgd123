@@ -19,8 +19,9 @@ import ssl
 import sys
 import time
 from typing import Iterable
-from urllib.parse import quote_plus, urljoin
+from urllib.parse import parse_qs, quote_plus, unquote, urljoin, urlparse
 from urllib.request import Request, urlopen
+import base64
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -37,6 +38,7 @@ class Announcement:
     title: str
     source: str
     url: str
+    verify_url: str
     matched_keywords: list[str]
     score: int
     found_at: str
@@ -113,8 +115,47 @@ def extract_links(page: str, base_url: str) -> Iterable[tuple[str, str]]:
         label = clean_text(label_html)
         if not label:
             continue
-        url = urljoin(base_url, href)
+        href = html.unescape(href)
+        url = normalize_url(urljoin(base_url, href))
+        if not url:
+            continue
         yield label[:160], url
+
+
+def normalize_url(url: str) -> str:
+    parsed = urlparse(url)
+    if parsed.scheme not in ("http", "https"):
+        return ""
+    host = parsed.netloc.lower()
+    if "bing.com" in host and parsed.path.startswith("/ck/"):
+        query = parse_qs(parsed.query)
+        raw = query.get("u", [""])[0]
+        decoded = decode_bing_url(raw)
+        return decoded
+    if any(blocked in host for blocked in ("bing.com", "microsoft.com")):
+        return ""
+    return url
+
+
+def decode_bing_url(raw: str) -> str:
+    if not raw:
+        return ""
+    raw = unquote(raw)
+    if raw.startswith("a1"):
+        raw = raw[2:]
+    padding = "=" * (-len(raw) % 4)
+    try:
+        decoded = base64.urlsafe_b64decode(raw + padding).decode("utf-8", errors="ignore")
+    except Exception:
+        return ""
+    parsed = urlparse(decoded)
+    if parsed.scheme in ("http", "https"):
+        return decoded
+    return ""
+
+
+def verify_search_url(title: str) -> str:
+    return "https://www.bing.com/search?q=" + quote_plus(title)
 
 
 def current_year() -> int:
@@ -232,6 +273,7 @@ def collect_from_source(source: dict, config: dict) -> list[Announcement]:
                 title=title,
                 source=source["name"],
                 url=link,
+                verify_url=verify_search_url(title),
                 matched_keywords=matched[:12],
                 score=score,
                 found_at=os.environ.get("GITHUB_RUN_STARTED_AT", ""),
@@ -269,6 +311,7 @@ def collect_from_query(query: str, config: dict) -> list[Announcement]:
                 title=title,
                 source=f"Bing: {query}",
                 url=link,
+                verify_url=verify_search_url(title),
                 matched_keywords=matched[:12],
                 score=score,
                 found_at=os.environ.get("GITHUB_RUN_STARTED_AT", ""),
@@ -325,6 +368,7 @@ def send_email(new_items: list[Announcement]) -> None:
         lines.append(f"  截止时间：{item.deadline or '未识别，需打开官方公告核验'}")
         lines.append(f"  说明：{item.status_note}")
         lines.append(f"  链接：{item.url}")
+        lines.append(f"  搜索核验：{item.verify_url}")
         lines.append("")
 
     msg = EmailMessage()
@@ -353,7 +397,7 @@ def main() -> int:
         "updated_at": os.environ.get("GITHUB_RUN_STARTED_AT", ""),
         "count": len(current),
         "items": [asdict(item) for item in current],
-        "note": "自动监控为 best-effort，第三方搜索结果必须回到官方来源核验。"
+        "note": "Auto monitor is best-effort. Search results must be verified against official announcements."
     }
     write_json(OUTPUT_PATH, output)
     write_json(STATE_PATH, {"seen_ids": sorted({*seen_ids, *(item.id for item in current)})})
