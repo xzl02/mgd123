@@ -226,6 +226,23 @@ def source_confidence(source: str, url: str, deadline: str) -> str:
     return "待核验线索"
 
 
+def is_generic_nav_title(title: str) -> bool:
+    normalized = re.sub(r"\s+", "", title)
+    generic_titles = {
+        "招聘",
+        "招聘公告",
+        "招聘公示",
+        "校园招聘",
+        "社会招聘",
+        "人才招聘",
+        "加入我们",
+        "招聘信息",
+        "公告",
+        "公示"
+    }
+    return normalized in generic_titles
+
+
 def score_item(title: str, url: str, keywords: list[str], high_value_units: list[str]) -> tuple[int, list[str], str, str, bool]:
     text = f"{title} {url}"
     matched = [kw for kw in keywords if kw in text]
@@ -260,6 +277,8 @@ def collect_from_source(source: dict, config: dict) -> list[Announcement]:
 
     items: list[Announcement] = []
     for title, link in extract_links(page, url):
+        if is_generic_nav_title(title):
+            continue
         score, matched, deadline, note, reject = score_item(title, link, config["keywords"], config["high_value_units"])
         if source.get("official"):
             score += 5
@@ -302,6 +321,8 @@ def collect_from_query(query: str, config: dict) -> list[Announcement]:
 
     items: list[Announcement] = []
     for title, link in extract_links(page, url):
+        if is_generic_nav_title(title):
+            continue
         score, matched, deadline, note, reject = score_item(title, link, config["keywords"], config["high_value_units"])
         if reject or score < 8:
             continue
