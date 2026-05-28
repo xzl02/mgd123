@@ -1,4 +1,4 @@
-const CACHE_NAME = "qh-career-watch-v4";
+const CACHE_NAME = "qh-career-watch-v5";
 const ASSETS = [
   "./",
   "./index.html",
@@ -24,7 +24,18 @@ self.addEventListener("activate", event => {
 
 self.addEventListener("fetch", event => {
   if (event.request.method !== "GET") return;
-  if (new URL(event.request.url).pathname.includes("/data/")) {
+  const url = new URL(event.request.url);
+  if (event.request.mode === "navigate" || url.pathname.endsWith("/index.html")) {
+    event.respondWith(
+      fetch(event.request).then(response => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        return response;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+  if (url.pathname.includes("/data/")) {
     event.respondWith(fetch(event.request).catch(() => caches.match(event.request)));
     return;
   }
