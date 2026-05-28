@@ -1,6 +1,177 @@
 {
   "updated_at": "",
-  "count": 0,
-  "items": [],
-  "note": "No verified cloud results yet. Run Job Monitor to generate official-entry cards or new announcement leads."
+  "count": 10,
+  "items": [
+    {
+      "id": "207cf108b8b3b455",
+      "title": "国家电网招聘平台 官方招聘入口",
+      "source": "国家电网招聘平台",
+      "url": "https://zhaopin.sgcc.com.cn",
+      "verify_url": "https://www.bing.com/search?q=%E5%9B%BD%E5%AE%B6%E7%94%B5%E7%BD%91%E6%8B%9B%E8%81%98%E5%B9%B3%E5%8F%B0+%E9%9D%92%E6%B5%B7+%E6%8B%9B%E8%81%98+%E7%94%B5%E5%AD%90%E4%BF%A1%E6%81%AF+%E8%87%AA%E5%8A%A8%E5%8C%96+%E6%96%B0%E8%83%BD%E6%BA%90",
+      "matched_keywords": [
+        "official",
+        "qinghai",
+        "jobs"
+      ],
+      "score": 6,
+      "found_at": "",
+      "deadline": "",
+      "confidence": "Official entry",
+      "status_note": "No specific new announcement was captured. Use this official entry for manual verification."
+    },
+    {
+      "id": "721f64cf09abd4d2",
+      "title": "国家能源集团招聘平台 官方招聘入口",
+      "source": "国家能源集团招聘平台",
+      "url": "https://zhaopin.chnenergy.com.cn",
+      "verify_url": "https://www.bing.com/search?q=%E5%9B%BD%E5%AE%B6%E8%83%BD%E6%BA%90%E9%9B%86%E5%9B%A2%E6%8B%9B%E8%81%98%E5%B9%B3%E5%8F%B0+%E9%9D%92%E6%B5%B7+%E6%8B%9B%E8%81%98+%E7%94%B5%E5%AD%90%E4%BF%A1%E6%81%AF+%E8%87%AA%E5%8A%A8%E5%8C%96+%E6%96%B0%E8%83%BD%E6%BA%90",
+      "matched_keywords": [
+        "official",
+        "qinghai",
+        "jobs"
+      ],
+      "score": 6,
+      "found_at": "",
+      "deadline": "",
+      "confidence": "Official entry",
+      "status_note": "No specific new announcement was captured. Use this official entry for manual verification."
+    },
+    {
+      "id": "3f92e75adc310a32",
+      "title": "国聘 官方招聘入口",
+      "source": "国聘",
+      "url": "https://www.iguopin.com",
+      "verify_url": "https://www.bing.com/search?q=%E5%9B%BD%E8%81%98+%E9%9D%92%E6%B5%B7+%E6%8B%9B%E8%81%98+%E7%94%B5%E5%AD%90%E4%BF%A1%E6%81%AF+%E8%87%AA%E5%8A%A8%E5%8C%96+%E6%96%B0%E8%83%BD%E6%BA%90",
+      "matched_keywords": [
+        "official",
+        "qinghai",
+        "jobs"
+      ],
+      "score": 6,
+      "found_at": "",
+      "deadline": "",
+      "confidence": "Official entry",
+      "status_note": "No specific new announcement was captured. Use this official entry for manual verification."
+    },
+    {
+      "id": "705f0c067d37fe95",
+      "title": "中国公共招聘网 官方招聘入口",
+      "source": "中国公共招聘网",
+      "url": "https://job.mohrss.gov.cn",
+      "verify_url": "https://www.bing.com/search?q=%E4%B8%AD%E5%9B%BD%E5%85%AC%E5%85%B1%E6%8B%9B%E8%81%98%E7%BD%91+%E9%9D%92%E6%B5%B7+%E6%8B%9B%E8%81%98+%E7%94%B5%E5%AD%90%E4%BF%A1%E6%81%AF+%E8%87%AA%E5%8A%A8%E5%8C%96+%E6%96%B0%E8%83%BD%E6%BA%90",
+      "matched_keywords": [
+        "official",
+        "qinghai",
+        "jobs"
+      ],
+      "score": 6,
+      "found_at": "",
+      "deadline": "",
+      "confidence": "Official entry",
+      "status_note": "No specific new announcement was captured. Use this official entry for manual verification."
+    },
+    {
+      "id": "ea386bad2cd642e3",
+      "title": "中国移动招聘 官方招聘入口",
+      "source": "中国移动招聘",
+      "url": "https://job.10086.cn",
+      "verify_url": "https://www.bing.com/search?q=%E4%B8%AD%E5%9B%BD%E7%A7%BB%E5%8A%A8%E6%8B%9B%E8%81%98+%E9%9D%92%E6%B5%B7+%E6%8B%9B%E8%81%98+%E7%94%B5%E5%AD%90%E4%BF%A1%E6%81%AF+%E8%87%AA%E5%8A%A8%E5%8C%96+%E6%96%B0%E8%83%BD%E6%BA%90",
+      "matched_keywords": [
+        "official",
+        "qinghai",
+        "jobs"
+      ],
+      "score": 6,
+      "found_at": "",
+      "deadline": "",
+      "confidence": "Official entry",
+      "status_note": "No specific new announcement was captured. Use this official entry for manual verification."
+    },
+    {
+      "id": "42eb4c2bdb43c26d",
+      "title": "中国电信招聘 官方招聘入口",
+      "source": "中国电信招聘",
+      "url": "https://job.chinatelecom.com.cn",
+      "verify_url": "https://www.bing.com/search?q=%E4%B8%AD%E5%9B%BD%E7%94%B5%E4%BF%A1%E6%8B%9B%E8%81%98+%E9%9D%92%E6%B5%B7+%E6%8B%9B%E8%81%98+%E7%94%B5%E5%AD%90%E4%BF%A1%E6%81%AF+%E8%87%AA%E5%8A%A8%E5%8C%96+%E6%96%B0%E8%83%BD%E6%BA%90",
+      "matched_keywords": [
+        "official",
+        "qinghai",
+        "jobs"
+      ],
+      "score": 6,
+      "found_at": "",
+      "deadline": "",
+      "confidence": "Official entry",
+      "status_note": "No specific new announcement was captured. Use this official entry for manual verification."
+    },
+    {
+      "id": "4737afada24f16f6",
+      "title": "中国铁塔招聘 官方招聘入口",
+      "source": "中国铁塔招聘",
+      "url": "https://zhaopin.chinatowercom.cn",
+      "verify_url": "https://www.bing.com/search?q=%E4%B8%AD%E5%9B%BD%E9%93%81%E5%A1%94%E6%8B%9B%E8%81%98+%E9%9D%92%E6%B5%B7+%E6%8B%9B%E8%81%98+%E7%94%B5%E5%AD%90%E4%BF%A1%E6%81%AF+%E8%87%AA%E5%8A%A8%E5%8C%96+%E6%96%B0%E8%83%BD%E6%BA%90",
+      "matched_keywords": [
+        "official",
+        "qinghai",
+        "jobs"
+      ],
+      "score": 6,
+      "found_at": "",
+      "deadline": "",
+      "confidence": "Official entry",
+      "status_note": "No specific new announcement was captured. Use this official entry for manual verification."
+    },
+    {
+      "id": "4d818ed58b58c1c2",
+      "title": "国家电投招聘 官方招聘入口",
+      "source": "国家电投招聘",
+      "url": "https://zhaopin.spic.com.cn",
+      "verify_url": "https://www.bing.com/search?q=%E5%9B%BD%E5%AE%B6%E7%94%B5%E6%8A%95%E6%8B%9B%E8%81%98+%E9%9D%92%E6%B5%B7+%E6%8B%9B%E8%81%98+%E7%94%B5%E5%AD%90%E4%BF%A1%E6%81%AF+%E8%87%AA%E5%8A%A8%E5%8C%96+%E6%96%B0%E8%83%BD%E6%BA%90",
+      "matched_keywords": [
+        "official",
+        "qinghai",
+        "jobs"
+      ],
+      "score": 6,
+      "found_at": "",
+      "deadline": "",
+      "confidence": "Official entry",
+      "status_note": "No specific new announcement was captured. Use this official entry for manual verification."
+    },
+    {
+      "id": "9dcb6662b489f111",
+      "title": "中国华能招聘 官方招聘入口",
+      "source": "中国华能招聘",
+      "url": "https://zhaopin.chng.com.cn",
+      "verify_url": "https://www.bing.com/search?q=%E4%B8%AD%E5%9B%BD%E5%8D%8E%E8%83%BD%E6%8B%9B%E8%81%98+%E9%9D%92%E6%B5%B7+%E6%8B%9B%E8%81%98+%E7%94%B5%E5%AD%90%E4%BF%A1%E6%81%AF+%E8%87%AA%E5%8A%A8%E5%8C%96+%E6%96%B0%E8%83%BD%E6%BA%90",
+      "matched_keywords": [
+        "official",
+        "qinghai",
+        "jobs"
+      ],
+      "score": 6,
+      "found_at": "",
+      "deadline": "",
+      "confidence": "Official entry",
+      "status_note": "No specific new announcement was captured. Use this official entry for manual verification."
+    },
+    {
+      "id": "8879dc56ef2f5c1b",
+      "title": "中国大唐招聘 官方招聘入口",
+      "source": "中国大唐招聘",
+      "url": "https://www.cdtrczp.com",
+      "verify_url": "https://www.bing.com/search?q=%E4%B8%AD%E5%9B%BD%E5%A4%A7%E5%94%90%E6%8B%9B%E8%81%98+%E9%9D%92%E6%B5%B7+%E6%8B%9B%E8%81%98+%E7%94%B5%E5%AD%90%E4%BF%A1%E6%81%AF+%E8%87%AA%E5%8A%A8%E5%8C%96+%E6%96%B0%E8%83%BD%E6%BA%90",
+      "matched_keywords": [
+        "official",
+        "qinghai",
+        "jobs"
+      ],
+      "score": 6,
+      "found_at": "",
+      "deadline": "",
+      "confidence": "Official entry",
+      "status_note": "No specific new announcement was captured. Use this official entry for manual verification."
+    }
+  ],
+  "note": "Auto monitor is best-effort. Search results must be verified against official announcements."
 }
