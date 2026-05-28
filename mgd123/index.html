@@ -136,6 +136,29 @@
       flex-wrap: wrap;
     }
 
+    .segmented {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0 12px;
+    }
+
+    .segmented button {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--muted);
+      border-radius: 8px;
+      padding: 8px 10px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    .segmented button.active {
+      color: #fff;
+      background: var(--brand);
+      border-color: var(--brand);
+    }
+
     .pill {
       border: 1px solid var(--line);
       background: #fff;
@@ -371,6 +394,34 @@
       gap: 8px;
     }
 
+    .prep-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(220px, 1fr));
+      gap: 12px;
+    }
+
+    .prep-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fff;
+      padding: 12px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .prep-card h4 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .prep-card ul {
+      margin: 0;
+      padding-left: 18px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.7;
+    }
+
     .item-head {
       display: flex;
       justify-content: space-between;
@@ -427,13 +478,24 @@
       }
 
       .sidebar {
-        position: sticky;
-        top: 0;
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
         z-index: 10;
+        padding: 8px;
+      }
+
+      main {
+        padding-bottom: 112px;
+      }
+
+      .brand {
+        display: none;
       }
 
       .nav {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-template-columns: repeat(6, minmax(0, 1fr));
       }
 
       .nav button {
@@ -449,7 +511,8 @@
 
       .grid.metrics,
       .grid.two,
-      .controls {
+      .controls,
+      .prep-grid {
         grid-template-columns: 1fr;
       }
     }
@@ -464,7 +527,7 @@
       }
 
       .nav {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-template-columns: repeat(3, minmax(0, 1fr));
       }
     }
   </style>
@@ -549,6 +612,12 @@
         <div class="panel">
           <h3>云端监控结果</h3>
           <div class="muted" id="cloudMeta">正在读取 GitHub Actions 监控数据...</div>
+          <div class="segmented" id="cloudFilters">
+            <button class="active" data-cloud-filter="leads">新公告线索</button>
+            <button data-cloud-filter="official">官方入口</button>
+            <button data-cloud-filter="high">高优先级</button>
+            <button data-cloud-filter="all">全部</button>
+          </div>
           <ul class="list" id="cloudList"></ul>
         </div>
       </section>
@@ -706,8 +775,8 @@
       <section id="exam" class="view hidden grid">
         <div class="grid two">
           <div class="panel">
-            <h3>备考方向</h3>
-            <div id="subjectList" class="list"></div>
+            <h3>复习面板</h3>
+            <div id="prepPanel" class="prep-grid"></div>
           </div>
           <div class="panel soft">
             <h3>资料搜索</h3>
@@ -878,9 +947,19 @@
       "中国电科", "青海盐湖", "西部矿业"
     ];
 
+    const prepPlans = [
+      { name: "国家电网", priority: "高", subjects: ["行测", "电工/通信/计算机基础", "企业文化", "时政"], query: "国家电网 青海 高校毕业生招聘 笔试 大纲 电子信息 通信" },
+      { name: "国家能源/国家电投", priority: "高", subjects: ["行测", "专业知识", "新能源/光伏", "企业文化"], query: "国家能源 国家电投 青海 校园招聘 笔试 题型 新能源 光伏" },
+      { name: "通信运营商", priority: "中", subjects: ["行测", "通信原理", "计算机网络", "性格测评"], query: "中国移动 中国电信 中国联通 青海 校园招聘 笔试 通信 计算机" },
+      { name: "新能源央企", priority: "中", subjects: ["电力电子", "光伏发电", "储能基础", "自动控制"], query: "华能 大唐 华电 三峡能源 青海 新能源 校招 笔试" },
+      { name: "电子光电/军工", priority: "中", subjects: ["模电/数电", "信号与系统", "光电检测", "C/Python"], query: "中国电科 航天 光电 电子信息 校园招聘 笔试" },
+      { name: "青海省属国企", priority: "中", subjects: ["自动化", "仪表/设备", "信息化", "行测"], query: "青海盐湖 西部矿业 青海省属国企 招聘 笔试 自动化 电子信息" }
+    ];
+
     let state = loadState();
     let deferredInstallPrompt = null;
     let cloudAnnouncements = [];
+    let cloudFilter = "leads";
 
     function loadState() {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -987,17 +1066,23 @@
     function renderCloudAnnouncements() {
       const list = document.getElementById("cloudList");
       if (!list) return;
-      if (!cloudAnnouncements.length) {
-        list.innerHTML = `<li><strong>暂无云端公告</strong><span class="muted">GitHub Actions 首次运行后会在这里显示监控结果。</span></li>`;
+      const filtered = filterCloudItems();
+      if (!filtered.length) {
+        const message = cloudFilter === "leads"
+          ? "本次未发现新的有效公告。可切到“官方入口”手动核验。"
+          : "当前筛选下没有结果。";
+        list.innerHTML = `<li><strong>${message}</strong><span class="muted">监控会每 6 小时自动运行一次。</span></li>`;
         return;
       }
-      list.innerHTML = cloudAnnouncements.slice(0, 8).map(item => `
+      list.innerHTML = filtered.slice(0, 12).map(item => `
         <li>
           <div class="item-head">
             <strong>${escapeHtml(item.title)}</strong>
             <span class="tag ${item.score >= 14 ? "ok" : "warn"}">匹配 ${item.score}</span>
           </div>
           <div>
+            <span class="tag ${item.result_type === "公告线索" ? "ok" : "warn"}">${escapeHtml(item.result_type || "线索")}</span>
+            <span class="tag">${escapeHtml(item.source_type || "待核验来源")}</span>
             <span class="tag ${item.confidence === "高可信" ? "ok" : item.confidence && item.confidence.includes("官方") ? "warn" : ""}">${escapeHtml(item.confidence || "待核验")}</span>
             <span class="tag ${item.deadline ? "ok" : "warn"}">截止：${escapeHtml(item.deadline || "未识别")}</span>
           </div>
@@ -1010,6 +1095,15 @@
           </div>
         </li>
       `).join("");
+    }
+
+    function filterCloudItems() {
+      if (cloudFilter === "all") return cloudAnnouncements;
+      if (cloudFilter === "official") return cloudAnnouncements.filter(item => item.result_type === "官方入口");
+      if (cloudFilter === "high") {
+        return cloudAnnouncements.filter(item => item.result_type !== "官方入口" && (item.score >= 12 || item.confidence === "高可信"));
+      }
+      return cloudAnnouncements.filter(item => item.result_type !== "官方入口");
     }
 
     function renderTargets() {
@@ -1084,14 +1178,18 @@
     }
 
     function renderSubjects() {
-      document.getElementById("subjectList").innerHTML = subjects.map(s => `
-        <li>
+      document.getElementById("prepPanel").innerHTML = prepPlans.map(plan => `
+        <div class="prep-card">
           <div class="item-head">
-            <strong>${escapeHtml(s)}</strong>
-            <button class="ghost" data-subject-search="${escapeAttr(s)}">搜索资料</button>
+            <h4>${escapeHtml(plan.name)}</h4>
+            <span class="tag ${plan.priority === "高" ? "ok" : "warn"}">${plan.priority}</span>
           </div>
-          <span class="muted">建议找官方大纲、公开样题、经验帖和教材知识点。</span>
-        </li>
+          <ul>${plan.subjects.map(s => `<li>${escapeHtml(s)}</li>`).join("")}</ul>
+          <div class="actions">
+            <button class="ghost" data-prep-search="${escapeAttr(plan.query)}">搜索资料</button>
+            <button class="secondary" data-add-prep="${escapeAttr(plan.name)}">加任务</button>
+          </div>
+        </div>
       `).join("");
 
       const examCompany = document.getElementById("examCompany");
@@ -1214,6 +1312,13 @@
     });
 
     document.addEventListener("click", event => {
+      const cloudButton = event.target.closest("[data-cloud-filter]");
+      if (cloudButton) {
+        cloudFilter = cloudButton.dataset.cloudFilter;
+        document.querySelectorAll("#cloudFilters button").forEach(button => button.classList.toggle("active", button === cloudButton));
+        renderCloudAnnouncements();
+      }
+
       const targetSearch = event.target.closest("[data-target-search]");
       if (targetSearch) {
         const name = targetSearch.dataset.targetSearch;
@@ -1230,6 +1335,24 @@
         document.getElementById("examSubject").value = subject;
         updateExamQuery();
         openSearch("bing", updateExamQuery());
+      }
+
+      const prepSearch = event.target.closest("[data-prep-search]");
+      if (prepSearch) {
+        openSearch("bing", prepSearch.dataset.prepSearch);
+      }
+
+      const addPrep = event.target.closest("[data-add-prep]");
+      if (addPrep) {
+        state.tasks.push({
+          id: crypto.randomUUID(),
+          text: `完成 ${addPrep.dataset.addPrep} 本周复习`,
+          due: "",
+          type: "专业课",
+          done: false
+        });
+        saveState();
+        toast("已添加到本周任务");
       }
 
       const toggleAnn = event.target.closest("[data-toggle-ann]");
@@ -1400,8 +1523,10 @@
         cloudAnnouncements = data.items || [];
         const meta = document.getElementById("cloudMeta");
         if (meta) {
+          const leadCount = data.lead_count ?? cloudAnnouncements.filter(item => item.result_type !== "官方入口").length;
+          const officialCount = data.official_entry_count ?? cloudAnnouncements.filter(item => item.result_type === "官方入口").length;
           meta.textContent = data.updated_at
-            ? `更新时间：${data.updated_at}，共 ${data.count || cloudAnnouncements.length} 条线索。第三方搜索结果需回到官方公告核验。`
+            ? `最近监控：${data.updated_at}；下次监控：${data.next_run_at || "约 6 小时后"}；新公告线索 ${leadCount} 条，官方入口 ${officialCount} 个。`
             : data.note || "GitHub Actions 首次运行后会更新这里。";
         }
         renderCloudAnnouncements();

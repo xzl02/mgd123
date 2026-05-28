@@ -5,6 +5,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, asdict
 from datetime import date, datetime
+from datetime import timedelta
 from email.message import EmailMessage
 from concurrent.futures import ThreadPoolExecutor, as_completed, TimeoutError as FuturesTimeout
 import hashlib
@@ -45,6 +46,8 @@ class Announcement:
     deadline: str
     confidence: str
     status_note: str
+    result_type: str
+    source_type: str
 
 
 def load_json(path: Path, default):
@@ -226,6 +229,32 @@ def source_confidence(source: str, url: str, deadline: str) -> str:
     return "待核验线索"
 
 
+def source_type(url: str, source: str) -> str:
+    host = urlparse(url).netloc.lower()
+    if "bing:" in source.lower():
+        return "搜索线索"
+    if any(marker in host for marker in ("edu.cn", "career.", "job.")):
+        return "高校/公共就业"
+    official_markers = (
+        "sgcc.com.cn",
+        "chnenergy.com.cn",
+        "10086.cn",
+        "chinatelecom.com.cn",
+        "chinatowercom.cn",
+        "iguopin.com",
+        "spic.com.cn",
+        "chng.com.cn",
+        "cdtrczp.com",
+        "ctg.zhiye.com",
+        "powerchina.cn",
+        "ceec.net.cn",
+        "cetc.com.cn",
+    )
+    if any(marker in host for marker in official_markers):
+        return "官方直达"
+    return "待核验来源"
+
+
 def is_generic_nav_title(title: str) -> bool:
     normalized = re.sub(r"\s+", "", title)
     generic_titles = {
@@ -299,6 +328,8 @@ def collect_from_source(source: dict, config: dict) -> list[Announcement]:
                 deadline=deadline,
                 confidence=source_confidence(source["name"], link, deadline),
                 status_note=note,
+                result_type="公告线索",
+                source_type=source_type(link, source["name"]),
             )
         )
     return items
@@ -339,6 +370,8 @@ def collect_from_query(query: str, config: dict) -> list[Announcement]:
                 deadline=deadline,
                 confidence=source_confidence(f"Bing: {query}", link, deadline),
                 status_note=note,
+                result_type="公告线索",
+                source_type=source_type(link, f"Bing: {query}"),
             )
         )
     return items
@@ -392,6 +425,8 @@ def fallback_official_entries(config: dict) -> list[Announcement]:
                 deadline="",
                 confidence="Official entry",
                 status_note="No specific new announcement was captured. Use this official entry for manual verification.",
+                result_type="官方入口",
+                source_type="官方直达",
             )
         )
     return entries
@@ -439,9 +474,18 @@ def main() -> int:
         current = fallback_official_entries(config)
     new_items = [item for item in current if item.id not in seen_ids]
 
+    updated_at = os.environ.get("GITHUB_RUN_STARTED_AT", datetime.utcnow().replace(microsecond=0).isoformat() + "Z")
+    next_run = ""
+    try:
+        next_run = (datetime.fromisoformat(updated_at.replace("Z", "+00:00")) + timedelta(hours=6)).isoformat().replace("+00:00", "Z")
+    except ValueError:
+        pass
     output = {
-        "updated_at": os.environ.get("GITHUB_RUN_STARTED_AT", ""),
+        "updated_at": updated_at,
+        "next_run_at": next_run,
         "count": len(current),
+        "lead_count": sum(1 for item in current if item.result_type == "公告线索"),
+        "official_entry_count": sum(1 for item in current if item.result_type == "官方入口"),
         "items": [asdict(item) for item in current],
         "note": "Auto monitor is best-effort. Search results must be verified against official announcements."
     }
