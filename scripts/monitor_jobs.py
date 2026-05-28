@@ -50,7 +50,7 @@ class Announcement:
 def load_json(path: Path, default):
     if not path.exists():
       return default
-    return json.loads(path.read_text(encoding="utf-8"))
+    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def write_json(path: Path, data) -> None:
@@ -374,6 +374,29 @@ def dedupe(items: Iterable[Announcement]) -> list[Announcement]:
     return sorted(best.values(), key=lambda x: x.score, reverse=True)[:80]
 
 
+def fallback_official_entries(config: dict) -> list[Announcement]:
+    entries: list[Announcement] = []
+    for source in config.get("sources", [])[:10]:
+        title = f"{source['name']} 官方招聘入口"
+        url = source["url"]
+        entries.append(
+            Announcement(
+                id=item_id(title, url),
+                title=title,
+                source=source["name"],
+                url=url,
+                verify_url=verify_search_url(f"{source['name']} 青海 招聘 电子信息 自动化 新能源"),
+                matched_keywords=["official", "qinghai", "jobs"],
+                score=6,
+                found_at=os.environ.get("GITHUB_RUN_STARTED_AT", ""),
+                deadline="",
+                confidence="Official entry",
+                status_note="No specific new announcement was captured. Use this official entry for manual verification.",
+            )
+        )
+    return entries
+
+
 def send_email(new_items: list[Announcement]) -> None:
     qq_email = os.environ.get("QQ_EMAIL")
     qq_code = os.environ.get("QQ_SMTP_CODE")
@@ -412,6 +435,8 @@ def main() -> int:
     collected = collect_parallel(config)
 
     current = dedupe(collected)
+    if not current:
+        current = fallback_official_entries(config)
     new_items = [item for item in current if item.id not in seen_ids]
 
     output = {
