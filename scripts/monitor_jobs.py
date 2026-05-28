@@ -29,6 +29,7 @@ ROOT = Path(__file__).resolve().parents[1]
 CONFIG_PATH = ROOT / "monitor_config.json"
 DATA_DIR = ROOT / "mgd123" / "data"
 OUTPUT_PATH = DATA_DIR / "announcements.json"
+JOBS_PATH = DATA_DIR / "jobs.json"
 STATE_PATH = ROOT / ".monitor_state.json"
 MAX_SECONDS = 70
 
@@ -432,6 +433,90 @@ def fallback_official_entries(config: dict) -> list[Announcement]:
     return entries
 
 
+def infer_unit(item: Announcement) -> str:
+    text = f"{item.title} {item.source}"
+    units = [
+        "国家电网", "国网青海", "国家能源", "国家电投", "黄河水电",
+        "华能", "大唐", "华电", "三峡能源", "中广核", "中核汇能",
+        "中国移动", "中国电信", "中国联通", "中国铁塔", "中国电科",
+        "青海盐湖", "西部矿业"
+    ]
+    for unit in units:
+        if unit in text:
+            return unit
+    return item.source.replace("Bing: ", "").split()[0][:24]
+
+
+def infer_location(item: Announcement) -> str:
+    text = f"{item.title} {item.source} {' '.join(item.matched_keywords)}"
+    if "青海" in text:
+        return "青海"
+    for city in ("西宁", "海东", "海西", "海南", "海北", "黄南", "果洛", "玉树"):
+        if city in text:
+            return city
+    return "待核验"
+
+
+def infer_role(item: Announcement) -> str:
+    text = item.title
+    role_keywords = [
+        "电子信息", "通信", "自动化", "电气", "新能源", "光伏", "储能",
+        "信息化", "计算机", "运维", "检修", "生产运行", "校园招聘", "高校毕业生"
+    ]
+    hits = [keyword for keyword in role_keywords if keyword in text or keyword in item.matched_keywords]
+    return " / ".join(hits[:4]) or "岗位待核验"
+
+
+def infer_major_match(item: Announcement) -> str:
+    text = f"{item.title} {' '.join(item.matched_keywords)}"
+    high = ("电子信息", "光电", "通信", "自动化", "电气", "新能源", "光伏", "储能", "信息化")
+    if any(keyword in text for keyword in high):
+        return "高"
+    if item.score >= 12:
+        return "中"
+    return "待核验"
+
+
+def build_job_records(items: list[Announcement]) -> list[dict]:
+    records = []
+    for item in items:
+        if item.result_type == "官方入口":
+            continue
+        records.append({
+            "id": "job-" + item.id,
+            "announcement_id": item.id,
+            "unit": infer_unit(item),
+            "role": infer_role(item),
+            "location": infer_location(item),
+            "major_match": infer_major_match(item),
+            "deadline": item.deadline,
+            "source_type": item.source_type,
+            "confidence": item.confidence,
+            "title": item.title,
+            "url": item.url,
+            "verify_url": item.verify_url,
+            "score": item.score,
+            "status_note": item.status_note,
+        })
+    return records
+
+
+def high_value_email_items(new_items: list[Announcement]) -> list[Announcement]:
+    valuable: list[Announcement] = []
+    for item in new_items:
+        if item.result_type == "官方入口":
+            continue
+        deadline_days = None
+        if item.deadline:
+            try:
+                deadline_days = (date.fromisoformat(item.deadline) - date.today()).days
+            except ValueError:
+                deadline_days = None
+        if item.confidence == "高可信" or item.score >= 12 or (deadline_days is not None and 0 <= deadline_days <= 7):
+            valuable.append(item)
+    return valuable
+
+
 def send_email(new_items: list[Announcement]) -> None:
     qq_email = os.environ.get("QQ_EMAIL")
     qq_code = os.environ.get("QQ_SMTP_CODE")
@@ -480,6 +565,7 @@ def main() -> int:
         next_run = (datetime.fromisoformat(updated_at.replace("Z", "+00:00")) + timedelta(hours=6)).isoformat().replace("+00:00", "Z")
     except ValueError:
         pass
+    jobs = build_job_records(current)
     output = {
         "updated_at": updated_at,
         "next_run_at": next_run,
@@ -490,16 +576,23 @@ def main() -> int:
         "note": "Auto monitor is best-effort. Search results must be verified against official announcements."
     }
     write_json(OUTPUT_PATH, output)
+    write_json(JOBS_PATH, {
+        "updated_at": updated_at,
+        "count": len(jobs),
+        "items": jobs,
+        "note": "Jobs are inferred from verified announcement leads. Official-entry fallback cards are not treated as jobs."
+    })
     write_json(STATE_PATH, {"seen_ids": sorted({*seen_ids, *(item.id for item in current)})})
 
-    if new_items:
-        print(f"New items: {len(new_items)}")
+    email_items = high_value_email_items(new_items)
+    if email_items:
+        print(f"New high-value items: {len(email_items)}")
         try:
-            send_email(new_items)
+            send_email(email_items)
         except Exception as exc:
             print(f"Email send failed: {exc}", file=sys.stderr)
     else:
-        print("No new items.")
+        print("No high-value new items.")
     return 0
 
 

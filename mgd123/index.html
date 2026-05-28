@@ -542,6 +542,7 @@
       <nav class="nav" aria-label="主导航">
         <button class="active" data-view="dashboard"><span>总</span><span>总览</span></button>
         <button data-view="targets"><span>企</span><span>企业池</span></button>
+        <button data-view="jobs"><span>岗</span><span>岗位库</span></button>
         <button data-view="search"><span>搜</span><span>搜索器</span></button>
         <button data-view="announcements"><span>告</span><span>公告记录</span></button>
         <button data-view="exam"><span>题</span><span>备考题库</span></button>
@@ -657,6 +658,53 @@
                 </tr>
               </thead>
               <tbody id="targetRows"></tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section id="jobs" class="view hidden grid">
+        <div class="panel">
+          <h3>岗位数据库</h3>
+          <div class="muted" id="jobMeta">正在读取岗位数据...</div>
+          <div class="controls">
+            <label>匹配度
+              <select id="jobMatchFilter">
+                <option value="">全部</option>
+                <option value="高">高</option>
+                <option value="中">中</option>
+                <option value="待核验">待核验</option>
+              </select>
+            </label>
+            <label>关键词
+              <input id="jobKeyword" placeholder="单位、岗位、地点">
+            </label>
+            <label>来源
+              <select id="jobSourceFilter">
+                <option value="">全部</option>
+                <option value="官方直达">官方直达</option>
+                <option value="搜索线索">搜索线索</option>
+                <option value="高校/公共就业">高校/公共就业</option>
+              </select>
+            </label>
+            <label>操作
+              <button class="secondary" id="resetJobFilters">清空筛选</button>
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>单位</th>
+                  <th>岗位方向</th>
+                  <th>地点</th>
+                  <th>专业匹配</th>
+                  <th>截止</th>
+                  <th>来源</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody id="jobRows"></tbody>
             </table>
           </div>
         </div>
@@ -960,6 +1008,7 @@
     let deferredInstallPrompt = null;
     let cloudAnnouncements = [];
     let cloudFilter = "leads";
+    let jobRecords = [];
 
     function loadState() {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -1017,6 +1066,7 @@
       renderMetrics();
       renderUrgent();
       renderTargets();
+      renderJobs();
       renderSources();
       renderAnnouncements();
       renderSubjects();
@@ -1144,6 +1194,38 @@
           <td><strong>${escapeHtml(name)}</strong></td>
           <td>${escapeHtml(use)}</td>
           <td><a href="${escapeAttr(url)}" target="_blank" rel="noreferrer">${escapeHtml(url)}</a></td>
+        </tr>
+      `).join("");
+    }
+
+    function renderJobs() {
+      const rowsEl = document.getElementById("jobRows");
+      if (!rowsEl) return;
+      const match = document.getElementById("jobMatchFilter")?.value || "";
+      const source = document.getElementById("jobSourceFilter")?.value || "";
+      const keyword = document.getElementById("jobKeyword")?.value.trim() || "";
+      const rows = jobRecords.filter(job => {
+        const text = `${job.unit} ${job.role} ${job.location} ${job.title}`;
+        return (!match || job.major_match === match)
+          && (!source || job.source_type === source)
+          && (!keyword || text.includes(keyword));
+      });
+      if (!rows.length) {
+        rowsEl.innerHTML = `<tr><td colspan="7">暂无岗位记录。只有抓到具体公告线索时，这里才会生成岗位；官方入口不会被当成岗位。</td></tr>`;
+        return;
+      }
+      rowsEl.innerHTML = rows.map(job => `
+        <tr>
+          <td><strong>${escapeHtml(job.unit)}</strong><div class="muted">${escapeHtml(job.title)}</div></td>
+          <td>${escapeHtml(job.role)}</td>
+          <td>${escapeHtml(job.location)}</td>
+          <td><span class="tag ${job.major_match === "高" ? "ok" : "warn"}">${escapeHtml(job.major_match)}</span></td>
+          <td>${escapeHtml(job.deadline || "未识别")}</td>
+          <td>${escapeHtml(job.source_type)}<div class="muted">${escapeHtml(job.confidence)}</div></td>
+          <td>
+            ${isUsableUrl(job.url) ? `<a href="${escapeAttr(job.url)}" target="_blank" rel="noreferrer">打开</a>` : ""}
+            <a href="${escapeAttr(job.verify_url)}" target="_blank" rel="noreferrer">核验</a>
+          </td>
         </tr>
       `).join("");
     }
@@ -1291,6 +1373,7 @@
       const titles = {
         dashboard: ["总览", "按你的专业和青海求职目标筛选央企国企机会。"],
         targets: ["企业池", "覆盖能源电力、新能源、通信、电子信息、光电军工和省属国企。"],
+        jobs: ["岗位库", "从具体公告线索中提取岗位、地点、专业匹配和截止时间。"],
         search: ["搜索器", "生成可直接打开的招聘搜索入口。"],
         announcements: ["公告记录", "保存公告、截止日期、匹配度和投递状态。"],
         exam: ["备考题库", "检索合法公开资料并管理每周复习任务。"],
@@ -1304,11 +1387,13 @@
       if (["searchCompany", "searchRole", "searchLocation", "searchSource"].includes(event.target.id)) updateQuery();
       if (["examCompany", "examSubject"].includes(event.target.id)) updateExamQuery();
       if (["targetCategory", "targetKeyword", "targetPriority"].includes(event.target.id)) renderTargets();
+      if (["jobMatchFilter", "jobSourceFilter", "jobKeyword"].includes(event.target.id)) renderJobs();
     });
 
     document.addEventListener("change", event => {
       if (["targetCategory", "targetPriority"].includes(event.target.id)) renderTargets();
       if (["examCompany", "examSubject"].includes(event.target.id)) updateExamQuery();
+      if (["jobMatchFilter", "jobSourceFilter"].includes(event.target.id)) renderJobs();
     });
 
     document.addEventListener("click", event => {
@@ -1414,6 +1499,13 @@
       document.getElementById("targetKeyword").value = "";
       document.getElementById("targetPriority").value = "";
       renderTargets();
+    });
+
+    document.getElementById("resetJobFilters").addEventListener("click", () => {
+      document.getElementById("jobMatchFilter").value = "";
+      document.getElementById("jobSourceFilter").value = "";
+      document.getElementById("jobKeyword").value = "";
+      renderJobs();
     });
 
     document.getElementById("addAnnouncement").addEventListener("click", () => {
@@ -1534,6 +1626,20 @@
       .catch(() => {
         const meta = document.getElementById("cloudMeta");
         if (meta) meta.textContent = "暂时无法读取云端监控数据。";
+      });
+
+    fetch("./data/jobs.json", { cache: "no-store" })
+      .then(resp => resp.ok ? resp.json() : null)
+      .then(data => {
+        if (!data) return;
+        jobRecords = data.items || [];
+        const meta = document.getElementById("jobMeta");
+        if (meta) meta.textContent = data.updated_at ? `更新时间：${data.updated_at}；岗位记录 ${data.count || jobRecords.length} 条。` : data.note || "暂无岗位数据。";
+        renderJobs();
+      })
+      .catch(() => {
+        const meta = document.getElementById("jobMeta");
+        if (meta) meta.textContent = "暂时无法读取岗位数据。";
       });
 
     window.addEventListener("beforeinstallprompt", event => {
