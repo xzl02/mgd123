@@ -1123,6 +1123,18 @@ dialog {
   background: transparent;
 }
 
+dialog.is-open-fallback {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  background: rgba(16, 31, 26, 0.38);
+  backdrop-filter: blur(4px);
+}
+
 dialog::backdrop {
   background: rgba(16, 31, 26, 0.38);
   backdrop-filter: blur(4px);

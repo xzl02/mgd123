@@ -350,6 +350,28 @@ function $all(selector) {
   return [...document.querySelectorAll(selector)];
 }
 
+function openBookDialog() {
+  const dialog = $("#bookDialog");
+  if (!dialog) return;
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  } else {
+    dialog.setAttribute("open", "");
+    dialog.classList.add("is-open-fallback");
+  }
+  $("#newTitle")?.focus();
+}
+
+function closeBookDialog() {
+  const dialog = $("#bookDialog");
+  if (!dialog) return;
+  if (typeof dialog.close === "function" && dialog.open) {
+    dialog.close();
+  }
+  dialog.removeAttribute("open");
+  dialog.classList.remove("is-open-fallback");
+}
+
 function setView(view) {
   activeView = view;
   document.body.dataset.view = view;
@@ -1096,7 +1118,7 @@ function createBook() {
   activeChapter = 0;
   activeEntity = 0;
   saveState();
-  $("#bookDialog").close();
+  closeBookDialog();
   setView("book");
 }
 
@@ -1192,9 +1214,14 @@ document.addEventListener("click", (event) => {
 $all(".tab").forEach((button) => button.addEventListener("click", () => setTab(button.dataset.tab)));
 $all("[data-jump-tab]").forEach((button) => button.addEventListener("click", () => setTab(button.dataset.jumpTab)));
 
-on("#newBookBtn", "click", () => $("#bookDialog").showModal());
-on("#homeNewBookBtn", "click", () => $("#bookDialog").showModal());
-on("#shelfNewBookBtn", "click", () => $("#bookDialog").showModal());
+on("#newBookBtn", "click", openBookDialog);
+on("#homeNewBookBtn", "click", openBookDialog);
+on("#shelfNewBookBtn", "click", openBookDialog);
+on("#closeBookDialogBtn", "click", closeBookDialog);
+on("#cancelBookDialogBtn", "click", closeBookDialog);
+on("#bookDialog", "click", (event) => {
+  if (event.target === $("#bookDialog")) closeBookDialog();
+});
 on("#createBookBtn", "click", (event) => {
   event.preventDefault();
   createBook();

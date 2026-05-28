@@ -451,14 +451,14 @@
       <form method="dialog" class="dialog-card">
         <header>
           <h2>新建小说</h2>
-          <button value="cancel" aria-label="关闭">×</button>
+          <button type="button" id="closeBookDialogBtn" aria-label="关闭">×</button>
         </header>
         <label>书名 <input id="newTitle" placeholder="例如：青崖问剑" /></label>
         <label>类型 <input id="newGenre" placeholder="玄幻 / 都市 / 科幻" /></label>
         <label>主线 <textarea id="newPremise" placeholder="一句话写清主角、目标、冲突"></textarea></label>
         <div class="dialog-actions">
-          <button value="cancel" class="ghost">取消</button>
-          <button value="default" class="primary" id="createBookBtn">创建</button>
+          <button type="button" class="ghost" id="cancelBookDialogBtn">取消</button>
+          <button type="button" class="primary" id="createBookBtn">创建</button>
         </div>
       </form>
     </dialog>
