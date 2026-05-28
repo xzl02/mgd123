@@ -33,6 +33,26 @@ JOBS_PATH = DATA_DIR / "jobs.json"
 STATE_PATH = ROOT / ".monitor_state.json"
 MAX_SECONDS = 70
 
+OFFICIAL_HOST_MARKERS = (
+    "sgcc.com.cn",
+    "chnenergy.com.cn",
+    "iguopin.com",
+    "job.mohrss.gov.cn",
+    "spic.com.cn",
+    "10086.cn",
+    "chinatelecom.com.cn",
+    "chinatowercom.cn",
+    "chng.com.cn",
+    "cdtrczp.com",
+    "chd.com.cn",
+    "ctg.zhiye.com",
+    "powerchina.cn",
+    "ceec.net.cn",
+    "cetc.com.cn",
+    "westmining.com",
+    "qhyhgf.com",
+)
+
 
 @dataclass
 class Announcement:
@@ -166,6 +186,10 @@ def current_year() -> int:
     return int(os.environ.get("MONITOR_YEAR", str(date.today().year)))
 
 
+def run_started_at() -> str:
+    return os.environ.get("GITHUB_RUN_STARTED_AT", datetime.utcnow().replace(microsecond=0).isoformat() + "Z")
+
+
 def parse_deadline(text: str) -> str:
     patterns = [
         r"(?:截止|截至|报名截止|投递截止|简历投递截止|申请截止)[^\d]{0,12}(\d{4})[年\-/\.](\d{1,2})[月\-/\.](\d{1,2})",
@@ -211,19 +235,9 @@ def year_penalty_and_note(text: str) -> tuple[int, str, bool]:
 
 
 def source_confidence(source: str, url: str, deadline: str) -> str:
-    official_markers = [
-        "sgcc.com.cn",
-        "chnenergy.com.cn",
-        "10086.cn",
-        "chinatelecom.com.cn",
-        "chinatowercom.cn",
-        "iguopin.com",
-        "job.mohrss.gov.cn",
-        "spic.com.cn"
-    ]
-    if deadline and any(marker in url for marker in official_markers):
+    if deadline and any(marker in url for marker in OFFICIAL_HOST_MARKERS):
         return "高可信"
-    if any(marker in url for marker in official_markers):
+    if any(marker in url for marker in OFFICIAL_HOST_MARKERS):
         return "官方来源待核验"
     if deadline:
         return "有截止日期待核验"
@@ -232,27 +246,14 @@ def source_confidence(source: str, url: str, deadline: str) -> str:
 
 def source_type(url: str, source: str) -> str:
     host = urlparse(url).netloc.lower()
+    if any(marker in host for marker in OFFICIAL_HOST_MARKERS):
+        if "官方域名搜索" in source:
+            return "官方域名搜索"
+        return "官方直达"
     if "bing:" in source.lower():
         return "搜索线索"
     if any(marker in host for marker in ("edu.cn", "career.", "job.")):
         return "高校/公共就业"
-    official_markers = (
-        "sgcc.com.cn",
-        "chnenergy.com.cn",
-        "10086.cn",
-        "chinatelecom.com.cn",
-        "chinatowercom.cn",
-        "iguopin.com",
-        "spic.com.cn",
-        "chng.com.cn",
-        "cdtrczp.com",
-        "ctg.zhiye.com",
-        "powerchina.cn",
-        "ceec.net.cn",
-        "cetc.com.cn",
-    )
-    if any(marker in host for marker in official_markers):
-        return "官方直达"
     return "待核验来源"
 
 
@@ -273,8 +274,8 @@ def is_generic_nav_title(title: str) -> bool:
     return normalized in generic_titles
 
 
-def score_item(title: str, url: str, keywords: list[str], high_value_units: list[str]) -> tuple[int, list[str], str, str, bool]:
-    text = f"{title} {url}"
+def score_item(title: str, url: str, keywords: list[str], high_value_units: list[str], context: str = "") -> tuple[int, list[str], str, str, bool]:
+    text = f"{title} {url} {context}"
     matched = [kw for kw in keywords if kw in text]
     unit_hits = [unit for unit in high_value_units if unit in text]
     score = len(matched) + len(unit_hits) * 3
@@ -325,7 +326,7 @@ def collect_from_source(source: dict, config: dict) -> list[Announcement]:
                 verify_url=verify_search_url(title),
                 matched_keywords=matched[:12],
                 score=score,
-                found_at=os.environ.get("GITHUB_RUN_STARTED_AT", ""),
+                found_at=run_started_at(),
                 deadline=deadline,
                 confidence=source_confidence(source["name"], link, deadline),
                 status_note=note,
@@ -341,6 +342,23 @@ def collect_from_search(config: dict) -> list[Announcement]:
     for query in config["search_queries"][:4]:
         items.extend(collect_from_query(query, config))
     return items
+
+
+def official_domain_queries(config: dict) -> list[dict]:
+    adapters = []
+    for adapter in config.get("official_search_adapters", []):
+        name = adapter.get("name", "").strip()
+        domain = adapter.get("domain", "").strip()
+        if not name or not domain:
+            continue
+        terms = adapter.get("terms") or ["青海 招聘"]
+        for term in terms[:4]:
+            adapters.append({
+                "name": name,
+                "domain": domain,
+                "query": f"site:{domain} {term}",
+            })
+    return adapters[:24]
 
 
 def collect_from_query(query: str, config: dict) -> list[Announcement]:
@@ -367,12 +385,61 @@ def collect_from_query(query: str, config: dict) -> list[Announcement]:
                 verify_url=verify_search_url(title),
                 matched_keywords=matched[:12],
                 score=score,
-                found_at=os.environ.get("GITHUB_RUN_STARTED_AT", ""),
+                found_at=run_started_at(),
                 deadline=deadline,
                 confidence=source_confidence(f"Bing: {query}", link, deadline),
                 status_note=note,
                 result_type="公告线索",
                 source_type=source_type(link, f"Bing: {query}"),
+            )
+        )
+    return items
+
+
+def collect_from_official_domain_query(adapter: dict, config: dict) -> list[Announcement]:
+    query = adapter["query"]
+    expected_domain = adapter["domain"].lower()
+    url = "https://www.bing.com/search?q=" + quote_plus(query)
+    try:
+        page = fetch(url, timeout=6)
+    except Exception as exc:
+        print(f"Official domain search failed: {query}: {exc}", file=sys.stderr)
+        return []
+
+    items: list[Announcement] = []
+    for title, link in extract_links(page, url):
+        if is_generic_nav_title(title):
+            continue
+        host = urlparse(link).netloc.lower()
+        if expected_domain not in host and not host.endswith("." + expected_domain):
+            continue
+        score, matched, deadline, note, reject = score_item(
+            title,
+            link,
+            config["keywords"],
+            config["high_value_units"],
+            context=f"{adapter['name']} 青海 招聘 官方",
+        )
+        score += 7
+        if note == "未识别年份，需核验":
+            note = "官方域名搜索命中，未识别截止时间，需打开公告核验"
+        if reject or score < 10:
+            continue
+        items.append(
+            Announcement(
+                id=item_id(title, link),
+                title=title,
+                source=f"官方域名搜索：{adapter['name']}",
+                url=link,
+                verify_url=verify_search_url(f"{adapter['name']} {title}"),
+                matched_keywords=matched[:12],
+                score=score,
+                found_at=run_started_at(),
+                deadline=deadline,
+                confidence=source_confidence(adapter["name"], link, deadline),
+                status_note=note,
+                result_type="公告线索",
+                source_type=source_type(link, f"官方域名搜索：{adapter['name']}"),
             )
         )
     return items
@@ -386,6 +453,8 @@ def collect_parallel(config: dict) -> list[Announcement]:
             tasks.append(executor.submit(collect_from_source, source, config))
         for query in config.get("search_queries", [])[:6]:
             tasks.append(executor.submit(collect_from_query, query, config))
+        for adapter in official_domain_queries(config):
+            tasks.append(executor.submit(collect_from_official_domain_query, adapter, config))
         try:
             for future in as_completed(tasks, timeout=MAX_SECONDS):
                 try:
@@ -422,7 +491,7 @@ def fallback_official_entries(config: dict) -> list[Announcement]:
                 verify_url=verify_search_url(f"{source['name']} 青海 招聘 电子信息 自动化 新能源"),
                 matched_keywords=["official", "qinghai", "jobs"],
                 score=6,
-                found_at=os.environ.get("GITHUB_RUN_STARTED_AT", ""),
+                found_at=run_started_at(),
                 deadline="",
                 confidence="Official entry",
                 status_note="No specific new announcement was captured. Use this official entry for manual verification.",
@@ -445,6 +514,16 @@ def infer_unit(item: Announcement) -> str:
         if unit in text:
             return unit
     return item.source.replace("Bing: ", "").split()[0][:24]
+
+
+def infer_major_requirement(item: Announcement) -> str:
+    text = f"{item.title} {' '.join(item.matched_keywords)}"
+    majors = [
+        "光电", "电子信息", "通信", "自动化", "电气", "新能源", "光伏", "储能",
+        "计算机", "软件", "信息化", "仪器", "测控", "能源动力", "机械"
+    ]
+    hits = [major for major in majors if major in text]
+    return " / ".join(hits[:5]) or "专业要求待核验"
 
 
 def infer_location(item: Announcement) -> str:
@@ -488,6 +567,7 @@ def build_job_records(items: list[Announcement]) -> list[dict]:
             "unit": infer_unit(item),
             "role": infer_role(item),
             "location": infer_location(item),
+            "major_requirement": infer_major_requirement(item),
             "major_match": infer_major_match(item),
             "deadline": item.deadline,
             "source_type": item.source_type,
@@ -559,7 +639,7 @@ def main() -> int:
         current = fallback_official_entries(config)
     new_items = [item for item in current if item.id not in seen_ids]
 
-    updated_at = os.environ.get("GITHUB_RUN_STARTED_AT", datetime.utcnow().replace(microsecond=0).isoformat() + "Z")
+    updated_at = run_started_at()
     next_run = ""
     try:
         next_run = (datetime.fromisoformat(updated_at.replace("Z", "+00:00")) + timedelta(hours=6)).isoformat().replace("+00:00", "Z")
