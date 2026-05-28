@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>果冻写作台</title>
+    <link rel="stylesheet" href="styles.css?v=20260528-7" />
+  </head>
+  <body>
+    <div class="shell">
+      <aside class="sidebar">
+        <button class="brand" data-view="home" aria-label="回到首页">
+          <span class="brand-mark">文</span>
+          <span>
+            <strong>果冻写作台</strong>
+            <small>Novel Workbench</small>
+          </span>
+        </button>
+
+        <nav class="main-nav" aria-label="主导航">
+          <button class="nav-item" data-view="home">主页</button>
+          <button class="nav-item" data-view="shelf">书架</button>
+          <button class="nav-item" data-view="site">云端站点</button>
+          <button class="nav-item" data-view="account">账号团队</button>
+          <button class="nav-item is-active" data-view="book">工作台</button>
+          <button class="nav-item" data-view="config">AI配置</button>
+          <button class="nav-item" data-view="pipeline">Agent流程</button>
+          <button class="nav-item" data-view="queue">批量任务</button>
+          <button class="nav-item" data-view="prompts">提示词</button>
+          <button class="nav-item" data-view="rules">质量规则</button>
+          <button class="nav-item" data-view="requests">请求记录</button>
+          <button class="nav-item" data-view="data">数据管理</button>
+        </nav>
+
+        <div class="sidebar-block">
+          <span class="block-label">当前书籍</span>
+          <strong id="activeBookName">逆天废柴：从炼气打到大乘</strong>
+          <small id="activeBookMeta">玄幻 / 修仙 / 400 章</small>
+        </div>
+
+        <button class="primary full" id="newBookBtn">新建小说</button>
+      </aside>
+
+      <main class="workspace">
+        <header class="topbar">
+          <div>
+            <span class="crumb" id="crumb">主页</span>
+            <h1 id="pageTitle">以清风为伴，写长篇江湖</h1>
+          </div>
+          <div class="top-actions">
+            <button class="ghost" data-view="site">上线中心</button>
+            <button class="ghost" id="exportBtn">导出</button>
+            <button class="primary" id="generateBtn">生成第 2 章</button>
+          </div>
+        </header>
+
+        <section class="view" id="homeView">
+          <div class="hero-panel">
+            <div class="hero-copy">
+              <span class="pill">竹影横窗 · 长篇创作</span>
+              <h2>把大纲、角色、伏笔和章节，放进同一个工作流。</h2>
+              <p>问卷立项、卷纲规划、按章写作、记忆追踪、状态更新、质量评估。适合长篇连载，不适合只写一段灵感。</p>
+              <div class="hero-actions">
+                <button class="primary" data-view="shelf">进入书架</button>
+                <button class="secondary" id="homeNewBookBtn">新建小说</button>
+              </div>
+            </div>
+            <div class="bamboo-scene" aria-hidden="true">
+              <span class="bamboo b1"></span>
+              <span class="bamboo b2"></span>
+              <span class="bamboo b3"></span>
+              <span class="mountain m1"></span>
+              <span class="mountain m2"></span>
+            </div>
+          </div>
+
+          <div class="summary-grid">
+            <article>
+              <span>书籍</span>
+              <strong id="bookCount">1</strong>
+              <small>本地项目</small>
+            </article>
+            <article>
+              <span>章节</span>
+              <strong id="chapterCount">1</strong>
+              <small>已写章节</small>
+            </article>
+            <article>
+              <span>角色</span>
+              <strong id="characterCount">4</strong>
+              <small>记忆实体</small>
+            </article>
+            <article>
+              <span>质量</span>
+              <strong>PASS</strong>
+              <small>模拟评估</small>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="shelfView">
+          <div class="section-head">
+            <h2>书架</h2>
+            <button class="primary" id="shelfNewBookBtn">新建小说</button>
+          </div>
+          <div class="book-grid" id="bookGrid"></div>
+        </section>
+
+        <section class="view" id="siteView">
+          <div class="cloud-hero">
+            <div>
+              <span class="pill">Public SaaS Mode</span>
+              <h2>把果冻写作台从本地工具，改造成别人也能注册使用的网站。</h2>
+              <p>前端部署到 Vercel 或 GitHub Pages，账号、小说、章节、记忆库、请求记录放到 Supabase。AI 密钥只放服务端，用户浏览器里不保存平台密钥。</p>
+              <div class="hero-actions">
+                <button class="primary" id="simulatePublishBtn">模拟上线检查</button>
+                <button class="secondary" id="copyDeployBtn">复制部署清单</button>
+              </div>
+            </div>
+            <aside class="publish-card">
+              <span>当前站点状态</span>
+              <strong id="publishStatus">本地预览</strong>
+              <small id="publishDomain">建议域名：judong-writing.vercel.app</small>
+            </aside>
+          </div>
+
+          <div class="cloud-grid">
+            <article>
+              <h3>访问方式</h3>
+              <div id="accessModeList"></div>
+            </article>
+            <article>
+              <h3>上线步骤</h3>
+              <div id="deployChecklist"></div>
+            </article>
+            <article>
+              <h3>云端架构</h3>
+              <div id="cloudArchitecture"></div>
+            </article>
+          </div>
+
+          <div class="section-head compact">
+            <h2>真实网站功能边界</h2>
+            <button class="ghost" data-view="account">配置账号</button>
+          </div>
+          <div class="feature-matrix" id="siteFeatureMatrix"></div>
+        </section>
+
+        <section class="view" id="accountView">
+          <div class="account-layout">
+            <article class="account-card">
+              <h2>账号资料</h2>
+              <label>显示名称 <input id="profileNameInput" /></label>
+              <label>登录邮箱 <input id="profileEmailInput" /></label>
+              <label>身份 <select id="profileRoleInput"><option>站长</option><option>作者</option><option>协作者</option></select></label>
+              <div class="row-actions">
+                <button class="primary" id="saveProfileBtn">保存资料</button>
+                <button class="ghost" id="mockLoginBtn">模拟登录</button>
+              </div>
+            </article>
+
+            <article class="account-card">
+              <h2>用量与权限</h2>
+              <div class="quota-grid" id="quotaGrid"></div>
+            </article>
+
+            <article class="account-card wide">
+              <h2>团队成员</h2>
+              <div class="invite-row">
+                <input id="inviteEmailInput" placeholder="输入协作者邮箱" />
+                <button class="primary" id="inviteBtn">邀请</button>
+              </div>
+              <div class="team-list" id="teamList"></div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view is-active" id="bookView">
+          <div class="book-header">
+            <div>
+              <button class="text-btn" data-view="shelf">← 返回书架</button>
+              <h2 id="bookTitle">逆天废柴：从炼气打到大乘</h2>
+              <p id="bookSub">玄幻 / 修仙 · 凡人逆袭 · 约 8 KB · 1 / 400 章</p>
+            </div>
+            <div class="batch">
+              <button class="primary" id="bookGenerateBtn">生成第 2 章</button>
+              <label>批量到第 <input id="batchTarget" value="400" inputmode="numeric" /> 章</label>
+              <button class="ghost" id="batchBtn">开始</button>
+            </div>
+          </div>
+
+          <div class="tabbar" role="tablist">
+            <button class="tab is-active" data-tab="chapters">章节</button>
+            <button class="tab" data-tab="outline">大纲</button>
+            <button class="tab" data-tab="volumes">卷纲</button>
+            <button class="tab" data-tab="state">状态追踪</button>
+            <button class="tab" data-tab="current">当前状态</button>
+            <button class="tab" data-tab="memory">记忆系统</button>
+            <button class="tab" data-tab="params">参数设置</button>
+            <button class="tab" data-tab="logs">执行日志</button>
+            <button class="tab" data-tab="questionnaire">问卷</button>
+            <button class="tab" data-tab="blocks">剧情块</button>
+            <button class="tab" data-tab="quality">质量检查</button>
+          </div>
+
+          <div class="workbench-shortcuts">
+            <button data-jump-tab="chapters"><strong>章节</strong><small id="shortcutChapters">1 章</small></button>
+            <button data-jump-tab="outline"><strong>大纲</strong><small>全书主线</small></button>
+            <button data-jump-tab="volumes"><strong>卷纲</strong><small id="shortcutVolumes">2 卷</small></button>
+            <button data-jump-tab="memory"><strong>记忆系统</strong><small id="shortcutMemory">8 条</small></button>
+          </div>
+
+          <div class="ops-console">
+            <article>
+              <header><strong>生成流水线</strong><span class="tag hot">7 Agent</span></header>
+              <div class="ops-steps" id="opsSteps"></div>
+            </article>
+            <article>
+              <header><strong>上下文包</strong><span class="tag">writer</span></header>
+              <div class="context-pack" id="contextPack"></div>
+            </article>
+            <article>
+              <header><strong>本章任务卡</strong><span class="tag warn">待生成</span></header>
+              <dl class="mini-dl" id="chapterTaskCard"></dl>
+            </article>
+            <article>
+              <header><strong>运行监控</strong><span class="tag">Trace</span></header>
+              <div class="runtime-monitor" id="runtimeMonitor"></div>
+            </article>
+          </div>
+
+          <div class="tab-panel" id="questionnairePanel">
+            <div class="question-grid" id="questionnaireForm"></div>
+          </div>
+
+          <div class="tab-panel is-active" id="chaptersPanel">
+            <aside class="chapter-list" id="chapterList"></aside>
+            <article class="editor-pane">
+              <input class="chapter-title" id="chapterTitleInput" />
+              <textarea id="chapterBodyInput"></textarea>
+              <div class="row-actions">
+                <button class="primary" id="saveChapterBtn">保存章节</button>
+                <button class="secondary" id="addChapterBtn">新增章节</button>
+                <button class="ghost" id="deleteChapterBtn">删除当前章节</button>
+              </div>
+              <div class="quality-box">
+                <strong>质量评估</strong>
+                <span>PASS</span>
+                <p id="qualityText">节奏稳定；人物动机、冲突、下一章钩子完整。</p>
+              </div>
+            </article>
+            <aside class="chapter-inspector">
+              <section>
+                <h3>注入上下文</h3>
+                <div id="chapterInjectionList"></div>
+              </section>
+              <section>
+                <h3>审稿意见</h3>
+                <div id="chapterReviewList"></div>
+              </section>
+              <section>
+                <h3>本章 Trace</h3>
+                <div id="chapterTraceList"></div>
+              </section>
+            </aside>
+          </div>
+
+          <div class="tab-panel" id="outlinePanel">
+            <div class="outline-tools">
+              <article>
+                <h3>实时大纲会话</h3>
+                <div id="outlineSessions"></div>
+              </article>
+              <article>
+                <h3>大纲产物</h3>
+                <div id="outlineArtifacts"></div>
+              </article>
+            </div>
+            <textarea class="large-text" id="outlineInput"></textarea>
+          </div>
+
+          <div class="tab-panel" id="volumesPanel">
+            <div class="row-actions panel-actions">
+              <button class="primary" id="addVolumeBtn">新增卷纲</button>
+            </div>
+            <div class="volume-list" id="volumeList"></div>
+          </div>
+
+          <div class="tab-panel" id="blocksPanel">
+            <div class="row-actions panel-actions">
+              <button class="primary" id="addBlockBtn">新增剧情块</button>
+              <button class="ghost" id="sortBlocksBtn">按章节排序</button>
+            </div>
+            <div class="block-board" id="blockBoard"></div>
+          </div>
+
+          <div class="tab-panel" id="statePanel">
+            <div class="timeline" id="stateTimeline"></div>
+          </div>
+
+          <div class="tab-panel" id="currentPanel">
+            <div class="state-grid">
+              <article>
+                <h3>当前剧情</h3>
+                <dl id="currentState"></dl>
+              </article>
+              <article>
+                <h3>当前剧情块</h3>
+                <dl id="currentBlock"></dl>
+              </article>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="memoryPanel">
+            <div class="memory-filters" id="memoryFilters"></div>
+            <div class="memory-dashboard" id="memoryDashboard"></div>
+            <div class="memory-layout">
+              <aside class="entity-list" id="entityList"></aside>
+              <article class="entity-detail" id="entityDetail"></article>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="qualityPanel">
+            <div class="quality-grid" id="qualityGrid"></div>
+          </div>
+
+          <div class="tab-panel" id="paramsPanel">
+            <div class="settings-grid">
+              <label>目标章节数 <input id="targetChaptersInput" type="number" min="1" /></label>
+              <label>每章字数 <input id="wordsInput" type="number" min="500" step="500" /></label>
+              <label>风格强度 <input id="styleRange" type="range" min="1" max="10" /></label>
+              <label>检查严格度 <input id="logicRange" type="range" min="1" max="10" /></label>
+            </div>
+          </div>
+
+          <div class="tab-panel" id="logsPanel">
+            <div class="log-list" id="logList"></div>
+          </div>
+        </section>
+
+        <section class="view" id="configView">
+          <div class="section-head">
+            <h2>模型管理</h2>
+            <button class="primary" id="addModelBtn">添加模型</button>
+          </div>
+          <div class="model-library" id="modelLibrary"></div>
+          <div class="section-head compact">
+            <h2>Agent 配置</h2>
+            <button class="primary" id="saveConfigBtn">保存配置</button>
+          </div>
+          <div class="config-stack" id="agentConfig"></div>
+          <div class="tool-config-grid">
+            <article>
+              <h3>生成配置</h3>
+              <div id="generationSettings"></div>
+            </article>
+            <article>
+              <h3>记忆系统</h3>
+              <div id="memorySettings"></div>
+            </article>
+          </div>
+          <div class="section-head compact">
+            <h2>上下文注入</h2>
+            <button class="ghost" id="toggleInjectionBtn">一键切换</button>
+          </div>
+          <div class="injection-matrix" id="injectionMatrix"></div>
+        </section>
+
+        <section class="view" id="pipelineView">
+          <div class="section-head">
+            <h2>Agent流程</h2>
+            <button class="primary" id="runPipelineBtn">模拟执行流程</button>
+          </div>
+          <div class="pipeline-board" id="pipelineBoard"></div>
+          <div class="pipeline-detail" id="pipelineDetail"></div>
+        </section>
+
+        <section class="view" id="queueView">
+          <div class="section-head">
+            <h2>批量任务</h2>
+            <button class="primary" id="createQueueBtn">创建批量任务</button>
+          </div>
+          <div class="queue-toolbar">
+            <label>起始章 <input id="queueStart" type="number" value="2" min="1" /></label>
+            <label>结束章 <input id="queueEnd" type="number" value="10" min="1" /></label>
+            <label>并发数 <input id="queueConcurrency" type="number" value="1" min="1" max="5" /></label>
+            <label>失败重试 <input id="queueRetry" type="number" value="2" min="0" max="5" /></label>
+          </div>
+          <div class="queue-list" id="queueList"></div>
+        </section>
+
+        <section class="view" id="promptsView">
+          <div class="section-head">
+            <h2>提示词</h2>
+            <button class="primary" id="addPromptBtn">新增提示词</button>
+          </div>
+          <div class="prompt-layout">
+            <aside id="promptList"></aside>
+            <article>
+              <input id="promptNameInput" class="chapter-title" />
+              <textarea id="promptBodyInput" class="large-text"></textarea>
+              <div class="row-actions">
+                <button class="primary" id="savePromptBtn">保存</button>
+                <button class="ghost" id="enablePromptBtn">启用</button>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <section class="view" id="rulesView">
+          <div class="section-head">
+            <h2>质量规则</h2>
+            <button class="primary" id="addRuleBtn">新增规则</button>
+          </div>
+          <div class="rule-list" id="ruleList"></div>
+        </section>
+
+        <section class="view" id="requestsView">
+          <div class="section-head">
+            <h2>请求记录</h2>
+            <button class="ghost" id="clearLogsBtn">清空</button>
+          </div>
+          <div class="request-stats" id="requestStats"></div>
+          <div class="request-layout">
+            <div class="request-list" id="requestList"></div>
+            <article class="request-detail" id="requestDetail"></article>
+          </div>
+          <div class="section-head compact">
+            <h2>Trace / Blobs</h2>
+            <button class="ghost" id="addTraceBtn">模拟追加</button>
+          </div>
+          <div class="trace-grid" id="traceGrid"></div>
+        </section>
+
+        <section class="view" id="dataView">
+          <div class="section-head">
+            <h2>数据管理</h2>
+            <button class="primary" id="copyDataBtn">复制数据</button>
+          </div>
+          <div class="data-actions">
+            <button class="secondary" id="downloadDataBtn">导出 JSON</button>
+            <button class="ghost" id="resetDemoBtn">重置示例数据</button>
+          </div>
+          <div class="project-tree" id="projectTree"></div>
+          <textarea id="dataPreview" class="large-text"></textarea>
+        </section>
+      </main>
+    </div>
+
+    <dialog id="bookDialog">
+      <form method="dialog" class="dialog-card">
+        <header>
+          <h2>新建小说</h2>
+          <button value="cancel" aria-label="关闭">×</button>
+        </header>
+        <label>书名 <input id="newTitle" placeholder="例如：青崖问剑" /></label>
+        <label>类型 <input id="newGenre" placeholder="玄幻 / 都市 / 科幻" /></label>
+        <label>主线 <textarea id="newPremise" placeholder="一句话写清主角、目标、冲突"></textarea></label>
+        <div class="dialog-actions">
+          <button value="cancel" class="ghost">取消</button>
+          <button value="default" class="primary" id="createBookBtn">创建</button>
+        </div>
+      </form>
+    </dialog>
+
+    <script src="app.js?v=20260528-7"></script>
+  </body>
+</html>

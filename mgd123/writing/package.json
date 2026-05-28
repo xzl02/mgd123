@@ -1,0 +1,14 @@
+{
+  "name": "guodong-writing-desk",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "果冻写作台公开网站版静态前端与 Vercel API 骨架",
+  "scripts": {
+    "dev": "vercel dev",
+    "check": "node --check app.js && node --check api/generate.js && node --check api/health.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
