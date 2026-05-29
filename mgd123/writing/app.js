@@ -268,6 +268,7 @@ let activeTab = "chapters";
 let activeChapter = 0;
 let activeEntity = 0;
 let memoryFilter = "all";
+let memoryLifecycleFilter = "all";
 
 function loadState() {
   const raw = localStorage.getItem(storageKey);
@@ -726,7 +727,7 @@ function renderCurrent(book) {
 }
 
 function renderMemory(book) {
-  const filters = [
+  const typeFilters = [
     ["all", "全部"],
     ["characters", "角色"],
     ["locations", "地点"],
@@ -734,17 +735,44 @@ function renderMemory(book) {
     ["factions", "阵营"],
     ["secrets", "秘闻"]
   ];
-  $("#memoryFilters").innerHTML = filters.map(([key, label]) => `
-    <button class="memory-filter ${memoryFilter === key ? "is-active" : ""}" data-memory="${key}">${label} ${key === "all" ? book.entities.length : book.entities.filter((item) => item.type === key).length}</button>
-  `).join("");
-  $all(".memory-filter").forEach((button) => {
+  const lifecycleFilters = [
+    ["all", "全部生命周期"],
+    ["活跃", "活跃"],
+    ["冷却", "冷却"],
+    ["冷存", "冷存"],
+    ["终结", "终结"]
+  ];
+  $("#memoryFilters").innerHTML = `
+    <div class="memory-filter-row">
+      ${typeFilters.map(([key, label]) => `
+        <button class="memory-filter ${memoryFilter === key ? "is-active" : ""}" data-memory-type="${key}">${label} ${key === "all" ? book.entities.length : book.entities.filter((item) => item.type === key).length}</button>
+      `).join("")}
+    </div>
+    <div class="memory-filter-row">
+      ${lifecycleFilters.map(([key, label]) => `
+        <button class="memory-filter ${memoryLifecycleFilter === key ? "is-active" : ""}" data-memory-life="${key}">${label} ${key === "all" ? book.entities.length : book.entities.filter((item) => item.lifecycle === key).length}</button>
+      `).join("")}
+    </div>
+  `;
+  $all("[data-memory-type]").forEach((button) => {
     button.addEventListener("click", () => {
-      memoryFilter = button.dataset.memory;
+      memoryFilter = button.dataset.memoryType;
       activeEntity = 0;
       renderMemory(book);
     });
   });
-  const entities = memoryFilter === "all" ? book.entities : book.entities.filter((entity) => entity.type === memoryFilter);
+  $all("[data-memory-life]").forEach((button) => {
+    button.addEventListener("click", () => {
+      memoryLifecycleFilter = button.dataset.memoryLife;
+      activeEntity = 0;
+      renderMemory(book);
+    });
+  });
+  const entities = book.entities.filter((entity) => {
+    const typeMatch = memoryFilter === "all" || entity.type === memoryFilter;
+    const lifecycleMatch = memoryLifecycleFilter === "all" || entity.lifecycle === memoryLifecycleFilter;
+    return typeMatch && lifecycleMatch;
+  });
   const list = $("#entityList");
   list.innerHTML = "";
   entities.forEach((entity, index) => {
@@ -764,6 +792,8 @@ function renderMemory(book) {
       <tr><td>实体类型</td><td>${escapeHtml(entity.type)}</td></tr>
       <tr><td>首次登场</td><td>${escapeHtml(entity.first)}</td></tr>
       <tr><td>最近出现</td><td>${escapeHtml(entity.last)}</td></tr>
+      <tr><td>注入策略</td><td>${escapeHtml(entity.injection || "按章节卡与上下文自动注入")}</td></tr>
+      <tr><td>更新时间</td><td>${escapeHtml(entity.updatedAt || "随章节生成更新")}</td></tr>
       <tr><td>性格</td><td>${escapeHtml(entity.traits)}</td></tr>
       <tr><td>动机</td><td>${escapeHtml(entity.motive)}</td></tr>
       <tr><td>核心能力</td><td>${escapeHtml(entity.ability)}</td></tr>
@@ -1078,6 +1108,7 @@ function addRequest(agent, status, text, prompt = "未记录提示词。", outpu
   };
   state.requests.unshift(request);
   state.activeRequestId = request.id;
+  return request;
 }
 
 function createBook() {
@@ -1126,41 +1157,42 @@ async function generateChapter() {
   saveCurrentChapter();
   const book = activeBook();
   const number = book.chapters.length + 1;
+  setPipelineStatus(["writer"], "RUNNING");
+  book.logs.unshift(`PipelineRunner：开始生成第 ${number} 章，构建 WriterAgent 上下文。`);
+  const context = buildAgentContext(book, number);
   const cloudResult = await requestCloudChapter(book, number);
-  const fallback = {
-    title: `第${number}章 · 戒中残魂`,
-    body: `夜色压下来的时候，木屋里只剩一盏快要燃尽的油灯。\n\n林越攥着那枚黑色戒指，掌心的血还未干透。下一瞬，冰冷的声音在他识海里响起。\n\n“废灵根？那只是他们看不懂你的命。”\n\n他猛地睁眼，眼前已不是破旧木屋，而是一片悬浮在黑暗中的石台。石台中央，残魂老人负手而立，像等了他很久。\n\n“想活下去，就吞掉第一缕灵气。”`,
-    quality: [
-      { name: "人物动机", status: "PASS", note: "主角行动由生存压力触发。" },
-      { name: "升级逻辑", status: "PASS", note: "新能力只给入口，未直接无敌。" },
-      { name: "章节钩子", status: "PASS", note: "戒中残魂抛出下一章问题。" },
-      { name: "信息密度", status: "WARN", note: "可以加入一个更具体的外门考核倒计时。" }
-    ],
-    state: {
-      title: "戒中残魂苏醒",
-      chapter: `第${number}章 · 戒中残魂`,
-      location: "外门木屋",
-      event: "林越进入戒指空间，与老鬼第一次对话，确认废灵根另有隐情。",
-      tags: ["林越", "老鬼", "功法"]
-    }
-  };
-  const generated = cloudResult || fallback;
-  const title = generated.title || fallback.title;
-  const body = generated.body || fallback.body;
+  const generated = cloudResult || simulateWriterAgent(book, number, context);
+  const title = generated.title;
+  const body = generated.body;
+  const writerRequest = addRequest("WriterAgent", "PASS", `${title} 正文草稿已生成。`, JSON.stringify(context.writer, null, 2), body);
+  addTracePair("writer", "WriterAgent", writerRequest, context.writer, generated);
+
+  setPipelineStatus(["writer"], "DONE");
+  setPipelineStatus(["logic"], "RUNNING");
+  book.logs.unshift(`LogicCheckAgent：开始检查 ${title}。`);
+  const qualityResult = simulateLogicCheckAgent(book, generated, context);
+  const logicRequest = addRequest("LogicCheckAgent", qualityResult.verdict.toUpperCase(), `${title} 质检结论：${qualityResult.verdict}。`, JSON.stringify(context.quality, null, 2), JSON.stringify(qualityResult, null, 2));
+  addTracePair("quality_check", "LogicCheckAgent", logicRequest, context.quality, qualityResult);
+
+  setPipelineStatus(["logic"], qualityResult.verdict === "pass" ? "DONE" : "WARN");
+  setPipelineStatus(["state"], "RUNNING");
+  book.logs.unshift(`StateUpdateAgent：开始更新 ${title} 的状态追踪与记忆系统。`);
+  const stateResult = simulateStateUpdateAgent(book, generated, qualityResult, context);
+  const stateRequest = addRequest("StateUpdateAgent", "PASS", `${title} 状态追踪和记忆系统已更新。`, JSON.stringify(context.stateUpdate, null, 2), JSON.stringify(stateResult, null, 2));
+  addTracePair("state_update", "StateUpdateAgent", stateRequest, context.stateUpdate, stateResult);
+
   book.chapters.push({ title, body });
-  book.logs.unshift(`WriterAgent：${title} ${cloudResult ? "云端生成" : "模拟生成"}完成。`);
-  book.states.push({
-    title: generated.state?.title || "戒中残魂苏醒",
-    chapter: title,
-    location: generated.state?.location || "外门木屋",
-    event: generated.state?.event || "林越进入戒指空间，与老鬼第一次对话，确认废灵根另有隐情。",
-    tags: generated.state?.tags || ["林越", "老鬼", "功法"]
-  });
+  book.logs.unshift(`WriterAgent：${title} ${cloudResult ? "云端生成" : "本地模拟"}完成。`);
+  book.states.push(stateResult.state);
+  applyMemoryUpdates(book, stateResult.memoryUpdates, title, number);
   book.blocks[0].status = "已生成";
-  book.quality = generated.quality?.length ? generated.quality : fallback.quality;
+  book.quality = qualityResult.issues;
   book.current.next = `第${number + 1}章`;
   book.current.progress = `${Math.round((book.chapters.length / book.targetChapters) * 100)}%`;
-  addRequest("WriterAgent", "PASS", `${title} 已生成，已同步状态追踪。`, `根据 ${book.current.block} 生成 ${title}`, body);
+  book.current.location = stateResult.state.location;
+  book.current.direction = stateResult.nextAnchor;
+  book.current.block = stateResult.blockAnchor;
+  setPipelineStatus(["state"], "DONE");
   if (cloudResult?.trace) {
     state.traces.unshift({
       id: `trace_${Date.now()}`,
@@ -1174,6 +1206,148 @@ async function generateChapter() {
   saveState();
   render();
   setTab("chapters");
+}
+
+function setPipelineStatus(ids, status) {
+  state.pipeline.forEach((step) => {
+    if (ids.includes(step.id)) step.status = status;
+  });
+}
+
+function buildAgentContext(book, number) {
+  const recentChapters = book.chapters.slice(-state.memorySystem.recent_full_chapters);
+  const activeEntities = book.entities.filter((entity) => entity.lifecycle === "活跃");
+  const coolingEntities = book.entities.filter((entity) => entity.lifecycle === "冷却");
+  const block = book.blocks.find((item) => item.status === "运行中") || book.blocks[0];
+  return {
+    writer: {
+      agent: "WriterAgent",
+      chapterCard: {
+        chapterNo: number,
+        targetWords: book.wordsPerChapter,
+        blockStory: block?.goal || book.current.block,
+        chapterRange: block?.range || book.current.next
+      },
+      outline: book.outline,
+      volume: book.volumes[0],
+      recentStates: state.agentInjection.writer["最近状态追踪"] ? book.states.slice(-5) : [],
+      activeEntities,
+      coolingEntities,
+      recentChapters
+    },
+    quality: {
+      agent: "LogicCheckAgent",
+      blockStory: block?.goal || book.current.block,
+      activeEntities,
+      coolingEntities,
+      recentStates: book.states.slice(-5),
+      terminatedWarnings: book.entities.filter((entity) => entity.lifecycle === "终结")
+    },
+    stateUpdate: {
+      agent: "StateUpdateAgent",
+      activeEntities,
+      coolingEntities,
+      recentStates: book.states.slice(-5),
+      chapterCard: {
+        chapterNo: number,
+        blockStory: block?.goal || book.current.block
+      }
+    }
+  };
+}
+
+function simulateWriterAgent(book, number, context) {
+  const title = `第${number}章 · 戒中残魂`;
+  const body = `夜色压下来的时候，木屋里只剩一盏快要燃尽的油灯。\n\n林越攥着那枚黑色戒指，掌心的血还未干透。下一瞬，冰冷的声音在他识海里响起。\n\n“废灵根？那只是他们看不懂你的命。”\n\n他猛地睁眼，眼前已不是破旧木屋，而是一片悬浮在黑暗中的石台。石台中央，残魂老人负手而立，像等了他很久。\n\n“想活下去，就吞掉第一缕灵气。”\n\n林越没有立刻跪下，也没有急着问自己能不能报仇。他只是盯着那团残魂，哑声问：“代价是什么？”\n\n老鬼笑了。\n\n“终于像个能活下去的人了。”`;
+  return {
+    title,
+    body,
+    source: "local-simulated-writer",
+    chapterCard: context.writer.chapterCard
+  };
+}
+
+function simulateLogicCheckAgent(book, generated, context) {
+  return {
+    verdict: "pass",
+    reason: "本章承接上章戒指线，未越出当前剧情块，章末钩子明确。",
+    issues: [
+      { name: "终结实体", status: "PASS", note: "未出现已终结实体违规复活。" },
+      { name: "块故事边界", status: "PASS", note: "只推进戒中残魂苏醒，未提前兑现外门反击。" },
+      { name: "最近状态承接", status: "PASS", note: "地点、伤势、戒指状态与最近状态追踪一致。" },
+      { name: "章节钩子", status: "PASS", note: "以代价问题收束，能承接下一章修炼入口。" }
+    ],
+    requiredFixes: [],
+    suggestions: ["可在后续章节补充外门考核倒计时，增强压迫感。"]
+  };
+}
+
+function simulateStateUpdateAgent(book, generated, qualityResult, context) {
+  const stateItem = {
+    title: "戒中残魂苏醒",
+    chapter: generated.title,
+    location: "外门木屋 → 戒指空间",
+    event: "林越进入戒指空间，与老鬼第一次对话，确认废灵根另有隐情。",
+    tags: ["林越", "老鬼", "黑色戒指", "主线启动"],
+    anchor: "林越问清修炼代价，下一章将正式尝试吞纳第一缕灵气。"
+  };
+  return {
+    state: stateItem,
+    nextAnchor: stateItem.anchor,
+    blockAnchor: "对齐卷1 · 废柴崛起；当前块推进到戒中残魂苏醒，下一章进入功法代价与首次修炼。",
+    memoryUpdates: [
+      { type: "characters", name: "林越", lifecycle: "活跃", patch: { last: generated.title, note: "进入戒指空间，开始确认万界吞天诀的代价。", injection: "WriterAgent 强注入" } },
+      { type: "characters", name: "老鬼", lifecycle: "活跃", patch: { last: generated.title, note: "正式苏醒并引导林越理解废灵根真相。", injection: "WriterAgent 强注入" } },
+      { type: "items", name: "黑色戒指", lifecycle: "活跃", patch: { last: generated.title, note: "开启戒指空间，承载老鬼残魂。", injection: "WriterAgent 强注入" } },
+      { type: "secrets", name: "修炼代价", lifecycle: "活跃", patch: { first: generated.title, last: generated.title, importance: "重要", traits: "吞噬灵气并非无代价", motive: "限制主角成长速度", ability: "作为后续修炼规则伏笔", note: "下一章需要揭示部分代价，不能直接无敌。", injection: "未回收伏笔强注入" } }
+    ]
+  };
+}
+
+function applyMemoryUpdates(book, updates, title, number) {
+  updates.forEach((update) => {
+    let entity = book.entities.find((item) => item.type === update.type && item.name === update.name);
+    if (!entity) {
+      entity = {
+        name: update.name,
+        type: update.type,
+        importance: update.patch?.importance || "重要",
+        lifecycle: update.lifecycle || "活跃",
+        first: update.patch?.first || title,
+        last: update.patch?.last || title,
+        traits: update.patch?.traits || "待自动补全",
+        motive: update.patch?.motive || "待自动补全",
+        ability: update.patch?.ability || "待自动补全",
+        note: update.patch?.note || "由 StateUpdateAgent 新增。",
+        injection: update.patch?.injection || "按章节卡自动注入"
+      };
+      book.entities.push(entity);
+    }
+    Object.assign(entity, update.patch || {});
+    entity.lifecycle = update.lifecycle || entity.lifecycle;
+    entity.updatedAt = new Date().toLocaleString("zh-CN", { hour12: false });
+  });
+  book.logs.unshift(`StateUpdateAgent：已写入 ${updates.length} 条记忆更新，并生成第 ${number} 章状态锚点。`);
+}
+
+function addTracePair(type, agent, request, prompt, output) {
+  const stamp = new Date().toISOString().replace(/[-:TZ.]/g, "").slice(0, 14);
+  state.traces.unshift(
+    {
+      id: `${type}_response_${request.id}`,
+      type: `${type}_response`,
+      agent,
+      file: `Trace/blobs/${stamp}_${type}_response.json`,
+      summary: JSON.stringify(output).slice(0, 260)
+    },
+    {
+      id: `${type}_request_${request.id}`,
+      type: `${type}_request`,
+      agent,
+      file: `Trace/blobs/${stamp}_${type}_request.json`,
+      summary: JSON.stringify(prompt).slice(0, 260)
+    }
+  );
 }
 
 async function requestCloudChapter(book, number) {

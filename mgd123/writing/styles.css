@@ -1002,9 +1002,16 @@ textarea {
 
 .memory-filters {
   display: flex;
+  flex-direction: column;
   gap: 8px;
   margin-bottom: 14px;
   overflow-x: auto;
+}
+
+.memory-filter-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .memory-filter {
